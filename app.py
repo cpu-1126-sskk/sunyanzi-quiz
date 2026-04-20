@@ -8,6 +8,8 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 import logic
+import base64
+from pathlib import Path
 
 st.set_page_config(
     page_title="寻找克卜勒",
@@ -299,15 +301,107 @@ st.markdown(
         line-height: 1.9;
         color: #c5c5ce !important;
     }
-    .media-shell {
-        max-width: 720px;
-        margin: 0 auto;
-        border-radius: 12px;
+    .album-gallery-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-auto-flow: dense;
+        gap: 14px;
+        margin: 2rem auto;
+        max-width: 900px;
+        padding: 0 10px;
+    }
+    .album-item {
+        position: relative;
+        border-radius: 14px;
         overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        background-color: rgba(0, 0, 0, 0.25) !important;
-        backdrop-filter: blur(10px) !important;
-        -webkit-backdrop-filter: blur(10px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        animation: albumBreath 5s infinite ease-in-out;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        background: #000;
+    }
+    /* Variations for "Scattered" feel */
+    .album-item:nth-child(4n+1) { grid-column: span 2; grid-row: span 2; }
+    .album-item:nth-child(7n) { grid-column: span 2; }
+    .album-item:nth-child(odd) { transform: rotate(-1.5deg) translateY(8px); }
+    .album-item:nth-child(even) { transform: rotate(1deg) translateY(-5px); }
+    
+    .album-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        opacity: 0.85;
+        transition: opacity 0.3s;
+    }
+    .album-placeholder {
+        background: rgba(255,255,255,0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        text-align: center;
+        font-size: 0.8rem;
+        color: #888;
+        min-height: 150px;
+    }
+    .album-item:hover {
+        transform: scale(1.05) rotate(0deg) !important;
+        z-index: 20;
+        border-color: rgba(138, 43, 226, 0.9);
+        box-shadow: 0 10px 30px rgba(138, 43, 226, 0.4);
+    }
+    .album-item:hover img {
+        opacity: 1;
+    }
+    @keyframes albumBreath {
+        0%, 100% { box-shadow: 0 0 10px rgba(138, 43, 226, 0.1); border-color: rgba(255, 255, 255, 0.1); }
+        50% { box-shadow: 0 0 25px rgba(138, 43, 226, 0.35); border-color: rgba(138, 43, 226, 0.4); }
+    }
+    @media (max-width: 600px) {
+        .stApp {
+            background: #090A0F !important; /* Deeper black for mobile OLED */
+        }
+        .view-container {
+            padding: 1.25rem 1rem !important;
+        }
+        .question-title {
+            font-size: 1.65rem !important;
+            margin-bottom: 1.75rem !important;
+            line-height: 1.3 !important;
+        }
+        /* Make options more compact on mobile */
+        .quiz-option-block div[data-testid="stButton"] > button {
+            padding: 24px 28px !important;
+            min-height: 7rem !important;
+            height: auto !important;
+            max-height: none !important;
+            font-size: 1.05rem !important;
+            margin-bottom: 12px !important;
+        }
+        /* Result page mobile optimization */
+        .result-song {
+            font-size: 2.4rem !important;
+            margin: 0.5rem 0 !important;
+        }
+        .result-group {
+            font-size: 0.85rem !important;
+            letter-spacing: 0.1em !important;
+        }
+        .result-logic, .result-parse {
+            font-size: 0.9rem !important;
+            line-height: 1.6 !important;
+            padding: 0 5px !important;
+        }
+        .result-album-img {
+            max-width: 280px !important;
+        }
+        .album-gallery-container {
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 8px !important;
+        }
+        .album-item:nth-child(odd) { transform: rotate(-1deg) translateY(4px) !important; }
+        .album-item:nth-child(even) { transform: rotate(0.5deg) translateY(-2px) !important; }
     }
     [data-testid="stSidebar"] { display: none; }
     #MainMenu { visibility: hidden; }
@@ -317,6 +411,15 @@ st.markdown(
 """,
     unsafe_allow_html=True,
 )
+
+
+def get_image_base64(path):
+    try:
+        with open(path, "rb") as f:
+            data = f.read()
+            return base64.b64encode(data).decode()
+    except Exception:
+        return None
 
 
 def find_asset(name, folder="assets", ext_filter=(".jpg", ".png", ".webp")):
@@ -508,28 +611,29 @@ def render_welcome():
         "<p style='font-size: 1.2rem; color: #aaa; margin-bottom: 3rem;'>在繁星之下，找寻那首刻在你性格里的燕姿。</p>",
         unsafe_allow_html=True,
     )
-    cols = st.columns(4)
-    for i, alb in enumerate(ALBUMS):
-        with cols[i % 4]:
-            img_path = find_asset(alb)
-            if img_path:
-                st.image(img_path, width="stretch")
-            else:
-                st.markdown(
-                    f"""
-                <div style="width: 100%; aspect-ratio: 1/1; background: rgba(255,255,255,0.05);
-                border-radius: 10px; display: flex; align-items: center; justify-content: center;
-                padding: 10px; text-align: center; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.1);">
-                {alb}
-                </div>
-                """,
-                    unsafe_allow_html=True,
-                )
-    st.write("")
     if st.button("✨ 开启燕姿歌曲寻找之旅 ✨", key="enter_btn"):
         reset_all()
         st.session_state.q_idx = 0
         st.rerun()
+    st.write("")
+    
+    # --- Custom HTML Album Gallery ---
+    gallery_html = "<div class='album-gallery-container'>"
+    for alb in ALBUMS:
+        img_path = find_asset(alb)
+        if img_path:
+            b64 = get_image_base64(img_path)
+            if b64:
+                ext = Path(img_path).suffix.replace(".", "")
+                if ext == "jpg": ext = "jpeg"
+                gallery_html += f'<div class="album-item"><img src="data:image/{ext};base64,{b64}" alt="{alb}"></div>'
+            else:
+                gallery_html += f'<div class="album-item album-placeholder">{alb}</div>'
+        else:
+            gallery_html += f'<div class="album-item album-placeholder">{alb}</div>'
+    gallery_html += "</div>"
+    
+    st.markdown(gallery_html, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
 
