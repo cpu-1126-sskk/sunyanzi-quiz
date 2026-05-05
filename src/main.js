@@ -1,25 +1,32 @@
 import { loadQuestionBank, getDiversionGroup, calculateResult, loadIframeMap } from './logic.js';
 
+let isTransitioning = false;
+
 async function transitionView(contentFunc) {
+    if (isTransitioning) return;
+    isTransitioning = true;
+
     const appEl = document.getElementById('app');
     const container = appEl.querySelector('.view-container');
     
     if (container) {
         container.classList.add('view-hidden');
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 400));
     }
     
     contentFunc();
     
-    // Force reflow for new content if it has view-container
     const newContainer = appEl.querySelector('.view-container');
     if (newContainer) {
         newContainer.classList.add('view-hidden');
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 newContainer.classList.remove('view-hidden');
+                isTransitioning = false;
             });
         });
+    } else {
+        isTransitioning = false;
     }
 }
 
@@ -78,21 +85,31 @@ function render() {
         return;
     }
 
-    transitionView(() => {
-        if (state.view === 'welcome') {
-            renderWelcome();
-        } else if (state.view === 'quiz') {
-            const gq = state.bank.global_questions || [];
-            const cq = (state.bank.configurations?.[state.group]?.questions) || [];
-            const allQ = [...gq, ...cq];
+    // Determine target view state before starting transition
+    let targetView = state.view;
+    let quizData = null;
+    let quizTotal = 0;
 
-            if (state.qIdx < allQ.length) {
-                renderQuiz(allQ[state.qIdx], allQ.length);
-            } else {
-                state.view = 'result';
-                renderResult();
-            }
-        } else if (state.view === 'result') {
+    if (targetView === 'quiz') {
+        const gq = state.bank.global_questions || [];
+        const cq = (state.bank.configurations?.[state.group]?.questions) || [];
+        const allQ = [...gq, ...cq];
+        quizTotal = allQ.length;
+        
+        if (state.qIdx < allQ.length) {
+            quizData = allQ[state.qIdx];
+        } else {
+            state.view = 'result';
+            targetView = 'result';
+        }
+    }
+
+    transitionView(() => {
+        if (targetView === 'welcome') {
+            renderWelcome();
+        } else if (targetView === 'quiz' && quizData) {
+            renderQuiz(quizData, quizTotal);
+        } else if (targetView === 'result') {
             renderResult();
         }
     });
