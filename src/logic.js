@@ -4,62 +4,15 @@
 
 export async function loadQuestionBank() {
     try {
-        const [baseRes, suppRes] = await Promise.all([
-            fetch('questionbank.json'),
-            fetch('补充.json').catch(() => null)
-        ]);
-
-        const baseBank = await baseRes.json();
-        let mergedBank = { ...baseBank };
-
-        if (suppRes && suppRes.ok) {
-            const suppData = await suppRes.json();
-            
-            if (suppData.global_questions) {
-                mergedBank.global_questions = suppData.global_questions;
-            }
-            
-            if (suppData.configurations) {
-                mergedBank.configurations = mergeConfigs(
-                    mergedBank.configurations || {},
-                    suppData.configurations
-                );
-            }
-            
-            if (suppData.song_database) {
-                mergedBank.song_database = {
-                    ...(mergedBank.song_database || {}),
-                    ...suppData.song_database
-                };
-            }
-        }
-        return mergedBank;
+        const res = await fetch('questionbank.json');
+        if (!res.ok) throw new Error("Failed to fetch question bank");
+        return await res.json();
     } catch (e) {
         console.error("Failed to load question bank:", e);
         return null;
     }
 }
 
-function mergeConfigs(base, supp) {
-    const merged = { ...base };
-    for (const [name, suppCfg] of Object.entries(supp)) {
-        if (merged[name]) {
-            merged[name] = {
-                ...merged[name],
-                ...suppCfg,
-                result_profiles: {
-                    ...(merged[name].result_profiles || {}),
-                    ...(suppCfg.result_profiles || {})
-                },
-                // Prefer non-empty logic
-                core_logic: (suppCfg.core_logic || merged[name].core_logic || "").trim()
-            };
-        } else {
-            merged[name] = suppCfg;
-        }
-    }
-    return merged;
-}
 
 export function getDiversionGroup(q1Choice, q2Choice, bank) {
     const matrix = bank.routing_matrix || {};
