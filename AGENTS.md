@@ -14,11 +14,10 @@
 
 ## 已知事实
 - **架构迁移**: 2026-05-04 确认已从 Streamlit (Python) 全面迁移至纯前端 Web 架构。
-- **数据加载**: `src/logic.js` 使用 `fetch` 动态加载 `questionbank.json`、`补充.json` 和 `歌曲iframe.md`。
+- **数据加载**: `src/logic.js` 使用 `fetch` 动态加载 `questionbank.json`（权威数据源）和 `歌曲iframe.md`。
 - **部署方式**: 适配 GitHub Pages 静态部署。
-- `questionbank.json` 与 `补充.json` 目前内容一致，后者作为运行时合并源。
-- 视频比例强制 16:9，背景使用 `radial-gradient` 模拟星空。
-- **文档体系**: 2026-05-04 完成了从 Claude (CLAUDE.md) 向 Google/Gemini (GEMINI.md) 生态的全面迁移。
+- **UI 特色**: 3D 倾斜开普勒轨道系统背景 + 电影感缩放转场动效。
+- **文档体系**: 2026-05-05 完成了从单一题库合并到 SEO 全面适配的最终迭代。
 
 ## 待办与计划 (Backlog)
 - [ ] 优化 `questionbank.json` 与 `补充.json` 的冗余问题。

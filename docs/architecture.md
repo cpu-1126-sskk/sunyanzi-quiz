@@ -21,17 +21,16 @@
 ## 2. 数据驱动模型
 
 ### 数据加载 (`src/logic.js`)
-使用原生 `fetch` API 实现多数据源同步加载：
-- `questionbank.json`: 主题库
-- `补充.json`: 增量覆盖
+使用原生 `fetch` API 实现单数据源高性能加载：
+- `questionbank.json`: 权威题库（合并了历史补充内容）
 - `歌曲iframe.md`: 媒体映射表
 
 ## 3. 响应式视图渲染 (`src/main.js`)
 
 应用采用单页应用 (SPA) 架构，通过状态机管理 `view` (welcome/quiz/result)：
-- **模板系统**: 使用 ES6 Template Literals 实现 UI 渲染。
-- **样式方案**: 配合 `src/style.css` 实现 Glassmorphism 效果与响应式布局。
-- **媒体 shell**: 针对 B 站嵌入视频进行正则清洗，动态注入 `autoplay=1` 与 16:9 比例容器。
+- **转场引擎**: `transitionView` 函数驱动，实现 0.5s 的电影感缩放淡入淡出。
+- **视觉方案**: 3D 倾斜轨道系统 + 呼吸星云 + 动态流星 + 深度毛玻璃卡片。
+- **媒体渲染**: 针对 B 站嵌入视频进行正则清洗，动态注入 `autoplay=1` 并确保 16:9 响应式比例。
 
 ## 4. 扩展性设计
 

@@ -4,13 +4,11 @@
 - **核心框架**: HTML5 + Vanilla JavaScript (ES Modules)
 - **业务逻辑**: `src/logic.js` (处理题库加载、逻辑合并与计分)
 - **渲染引擎**: `src/main.js` (状态机驱动的视图切换)
-- **数据存储**: 
-  - `questionbank.json`: 核心题库（全局题、路由矩阵、组态配置）
-  - `补充.json`: 动态扩展题库（与 `questionbank.json` 合并）
+- **数据存储**: `questionbank.json` (权威单数据源，包含全局题、路由矩阵与组态配置)
 - **媒体资源**:
-  - `assets/`: 专辑封面资源
+  - `assets/`: 专辑封面资源（已全面优化为轻量级 .jpg 格式）
   - `歌曲iframe.md`: B站音频嵌入映射表
-- **UI 设计**: `src/style.css` 采用深色星空 + 毛玻璃（Glassmorphism）风格。
+- **UI 设计**: `src/style.css` 采用 3D 倾斜开普勒星系背景 + 毛玻璃（Glassmorphism）+ 电影感转场动效。
 
 ## 核心指令
 - **本地预览**: `python -m http.server 8000` (或使用任意静态服务器)
