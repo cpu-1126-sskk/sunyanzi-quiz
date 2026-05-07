@@ -82,11 +82,25 @@ async function init() {
         const starField = document.querySelector('.star-field');
         const kepler = document.querySelector('.kepler-system');
         if (starField) starField.style.transform = `translate(${x * 50}px, ${y * 50}px)`;
-        if (kepler) kepler.style.transform = `translate(calc(-50% + ${x * -80}px), calc(-50% + ${y * -80}px)) rotateX(68deg) rotateY(-5deg)`;
+        if (kepler) kepler.style.transform = `translate(calc(-50% + ${x * -80}px), calc(-50% + ${y * -80}px)) rotateX(68deg) rotateY(${-5 + x * 10}deg)`;
     };
+
     document.addEventListener('mousemove', (e) => {
         updateParallax((e.clientX / window.innerWidth) - 0.5, (e.clientY / window.innerHeight) - 0.5);
     });
+
+    // Mobile Gyroscope Support
+    if (window.DeviceOrientationEvent) {
+        window.addEventListener('deviceorientation', (e) => {
+            if (e.beta === null || e.gamma === null) return;
+            // AG Logic: Gamma (-90 to 90), Beta (-180 to 180)
+            // We map comfortable tilt ranges to -0.5 -> 0.5
+            const x = Math.max(-1, Math.min(1, e.gamma / 30)); 
+            const y = Math.max(-1, Math.min(1, (e.beta - 45) / 30));
+            updateParallax(x, y);
+        }, true);
+    }
+
     state.bank = await loadQuestionBank();
     state.iframeMap = await loadIframeMap();
     updateDynamicBackground(true);
@@ -152,7 +166,12 @@ function renderWelcome() {
             <div class="album-gallery">${albums.map(name => `<div class="album-item"><img src="${findAsset(name)}" alt="${name}"></div>`).join('')}</div>
         </div>
     `;
-    document.getElementById('start-btn').addEventListener('click', () => {
+    document.getElementById('start-btn').addEventListener('click', async () => {
+        // AG Logic: Request Gyroscope Permission for iOS 13+
+        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+            try { await DeviceOrientationEvent.requestPermission(); } catch (e) {}
+        }
+
         const allQuestions = state.bank.questions || [];
         const totalToPick = state.bank.project_info.total_steps || 12;
         const pools = {};
