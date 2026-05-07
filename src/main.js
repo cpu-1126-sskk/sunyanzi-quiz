@@ -84,12 +84,13 @@ let state = {
 const appEl = document.getElementById('app');
 
 async function init() {
-    // Parallax logic for Desktop (Mouse) and Mobile (Orientation)
+    // Parallax logic with increased intensity
     const updateParallax = (x, y) => {
         const starField = document.querySelector('.star-field');
         const kepler = document.querySelector('.kepler-system');
-        if (starField) starField.style.transform = `translate(${x * 30}px, ${y * 30}px)`;
-        if (kepler) kepler.style.transform = `translate(calc(-50% + ${x * -50}px), calc(-50% + ${y * -50}px)) rotateX(68deg) rotateY(-5deg)`;
+        // Multiplier increased from 30/50 to 50/80 for better visibility
+        if (starField) starField.style.transform = `translate(${x * 50}px, ${y * 50}px)`;
+        if (kepler) kepler.style.transform = `translate(calc(-50% + ${x * -80}px), calc(-50% + ${y * -80}px)) rotateX(68deg) rotateY(-5deg)`;
     };
 
     document.addEventListener('mousemove', (e) => {
@@ -98,9 +99,8 @@ async function init() {
 
     if (window.DeviceOrientationEvent) {
         window.addEventListener('deviceorientation', (e) => {
-            // Gamma: left to right, Beta: front to back
-            const x = Math.min(Math.max(e.gamma / 30, -0.5), 0.5);
-            const y = Math.min(Math.max((e.beta - 45) / 30, -0.5), 0.5);
+            const x = Math.min(Math.max(e.gamma / 20, -0.5), 0.5);
+            const y = Math.min(Math.max((e.beta - 45) / 20, -0.5), 0.5);
             updateParallax(x, y);
         }, true);
     }
@@ -124,15 +124,15 @@ function render() {
     let quizData = null;
     let quizTotal = 0;
 
-    // Logic for quiz step determination
     if (state.view === 'quiz') {
         const gq = state.bank.global_questions || [];
+        // Fixed logic: Always assume 7 total questions (2 global + 5 per config) to prevent progress bar jump
+        quizTotal = gq.length + 5; 
+        
         const cq = (state.bank.configurations?.[state.group]?.questions) || [];
         const allQ = [...gq, ...cq];
-        quizTotal = allQ.length;
         
         if (state.qIdx >= allQ.length) {
-            // Internal state transition without re-rendering yet
             state.view = 'result';
         } else {
             quizData = allQ[state.qIdx];

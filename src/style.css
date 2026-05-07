@@ -47,7 +47,7 @@ body {
     position: fixed;
     top: 55%; left: 50%;
     width: 0; height: 0;
-    z-index: -9;
+    z-index: -8; /* Moved above star-field */
     pointer-events: none;
     transform: translate(-50%, -50%) rotateX(68deg) rotateY(-5deg);
     transform-style: preserve-3d;
@@ -351,19 +351,6 @@ h1 {
 .option-btn:active {
     transform: translateX(4px) scale(0.98);
     background: rgba(138, 43, 226, 0.15);
-}
-
-.option-btn::after {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; width: 4px; height: 100%;
-    background: var(--accent-color);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.option-btn:hover::after {
-    opacity: 1;
 }
 
 .back-btn {
