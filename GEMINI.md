@@ -1,25 +1,18 @@
-# 寻找克卜勒 (Finding Kepler) - Web Personality Quiz
-
 ## 技术架构
 - **核心框架**: HTML5 + Vanilla JavaScript (ES Modules)
-- **业务逻辑**: `src/logic.js` (处理题库加载、逻辑合并与计分)
-- **渲染引擎**: `src/main.js` (状态机驱动的视图切换)
-- **数据存储**: `questionbank.json` (权威单数据源，包含全局题、路由矩阵与组态配置)
+- **业务逻辑**: `src/logic.js` (指数级得分映射 [0, 1.5, 3, 6, 10], 影子权重 0.1)
+- **渲染引擎**: `src/main.js` (300px 视口, 95px 核心半径, 动态资产清洗映射)
+- **数据存储**: `questionbank.json` (32道全量题库, 33首曲目精神坐标)
 - **媒体资源**:
-  - `assets/`: 专辑封面资源（已全面优化为轻量级 .jpg 格式）
-  - `歌曲iframe.md`: B站音频嵌入映射表
-- **UI 设计**: `src/style.css` 采用 3D 倾斜开普勒星系背景 + 毛玻璃（Glassmorphism）+ 电影感转场动效。
+  - `assets/`: 专辑封面资源（已优化为 .jpg 格式）
+  - `歌曲iframe.md`: 鲁棒性 B 站音频嵌入映射表
+- **UI 设计**: 720px 黄金阅读宽度, 60px 触控热区, 电影感毛玻璃转场。
 
 ## 核心指令
-- **本地预览**: `python -m http.server 8000` (或使用任意静态服务器)
-- **部署发布**: 推送至 GitHub 仓库，通过 GitHub Pages 自动部署。
-
-## 项目文档
-- [README.md](README.md): 项目概览与快速开始
-- [docs/architecture.md](docs/architecture.md): 深度架构解析（逻辑流与数据模型）
+- **本地预览**: `python -m http.server 8000`
+- **部署发布**: `git push origin main` (自动触发 GitHub Pages)
 
 ## 代码规范与约定
-- **架构模式**: 纯前端静态应用，禁止引入 Node.js 或 Python 后端运行时。
-- **数据加载**: 必须通过 `fetch` 异步获取资源，路径保持相对关系以适配子路径部署。
-- **音频维护**: 新增曲目必须在 `歌曲iframe.md` 中以 `歌名：<iframe>` 格式添加。
-- **UI/UX**: 强制 16:9 比例，确保移动端视觉体验一致。
+- **得分逻辑**: 严禁改动 `[0, 1.5, 3, 6, 10]` 映射，这是确保星图尖锐度的数学基础。
+- **资产加载**: 新增封面必须使用 `findAsset` 包装器处理。
+- **响应式**: 移动端强制 100vh 垂直居中布局。
