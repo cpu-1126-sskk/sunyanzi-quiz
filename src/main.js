@@ -30,6 +30,7 @@ const ASSETS_MAP = {
     "孙燕姿同名专辑": "同名专辑.jpg",
     "我要的幸福": "我要的幸福.jpg",
     "风筝": "风筝.jpg",
+    "自选集": "自选集.jpg",
     "Leave": "leave.jpg",
     "未完成": "未完成.jpg",
     "The Moment": "the moment.jpg",
@@ -39,8 +40,7 @@ const ASSETS_MAP = {
     "逆光": "逆光.jpg",
     "是时候": "是时候.jpg",
     "克卜勒": "克卜勒.jpg",
-    "No.13": "No13.jpg",
-    "自选集": "自选集.jpg"
+    "No.13": "No13.jpg"
 };
 
 const DIMENSION_NAMES = {
