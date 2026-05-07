@@ -49,14 +49,24 @@ const ASSETS_MAP = {
 
 function findAsset(name) {
     if (!name) return null;
-    const norm = name.toLowerCase().replace(/\s/g, '');
+    const norm = name.toLowerCase().trim().replace(/\s/g, '');
+    
+    // 1. Exact or near-exact mapping check
     for (const [key, val] of Object.entries(ASSETS_MAP)) {
-        if (key.toLowerCase().replace(/\s/g, '').includes(norm) || norm.includes(key.toLowerCase().replace(/\s/g, ''))) {
-            return `assets/${val}`;
-        }
+        const normKey = key.toLowerCase().replace(/\s/g, '');
+        if (normKey === norm) return `assets/${val}`;
     }
+
+    // 2. Inclusion check (more strict)
+    for (const [key, val] of Object.entries(ASSETS_MAP)) {
+        const normKey = key.toLowerCase().replace(/\s/g, '');
+        if (normKey.includes(norm) || norm.includes(normKey)) return `assets/${val}`;
+    }
+
+    // 3. Filename direct check as fallback
     for (const val of Object.values(ASSETS_MAP)) {
-        if (val.toLowerCase().replace(/\s/g, '').includes(norm)) return `assets/${val}`;
+        const normVal = val.toLowerCase().replace(/\.(jpg|png|jpeg)$/, '').replace(/\s/g, '');
+        if (normVal.includes(norm)) return `assets/${val}`;
     }
     return null;
 }
@@ -74,6 +84,27 @@ let state = {
 const appEl = document.getElementById('app');
 
 async function init() {
+    // Parallax logic for Desktop (Mouse) and Mobile (Orientation)
+    const updateParallax = (x, y) => {
+        const starField = document.querySelector('.star-field');
+        const kepler = document.querySelector('.kepler-system');
+        if (starField) starField.style.transform = `translate(${x * 30}px, ${y * 30}px)`;
+        if (kepler) kepler.style.transform = `translate(calc(-50% + ${x * -50}px), calc(-50% + ${y * -50}px)) rotateX(68deg) rotateY(-5deg)`;
+    };
+
+    document.addEventListener('mousemove', (e) => {
+        updateParallax((e.clientX / window.innerWidth) - 0.5, (e.clientY / window.innerHeight) - 0.5);
+    });
+
+    if (window.DeviceOrientationEvent) {
+        window.addEventListener('deviceorientation', (e) => {
+            // Gamma: left to right, Beta: front to back
+            const x = Math.min(Math.max(e.gamma / 30, -0.5), 0.5);
+            const y = Math.min(Math.max((e.beta - 45) / 30, -0.5), 0.5);
+            updateParallax(x, y);
+        }, true);
+    }
+
     state.bank = await loadQuestionBank();
     state.iframeMap = await loadIframeMap();
     render();
@@ -81,35 +112,42 @@ async function init() {
 
 function render() {
     if (!state.bank) {
-        appEl.innerHTML = `<div class="view-container"><h1>加载中...</h1></div>`;
+        appEl.innerHTML = `
+            <div class="view-container loader-wrapper">
+                <div class="celestial-loader"></div>
+                <p style="letter-spacing: 0.5em; color: var(--text-dim); animation: pulse 2s infinite;">正在找寻克卜勒...</p>
+            </div>
+        `;
         return;
     }
 
-    // Determine target view state before starting transition
-    let targetView = state.view;
     let quizData = null;
     let quizTotal = 0;
 
-    if (targetView === 'quiz') {
+    // Logic for quiz step determination
+    if (state.view === 'quiz') {
         const gq = state.bank.global_questions || [];
         const cq = (state.bank.configurations?.[state.group]?.questions) || [];
         const allQ = [...gq, ...cq];
         quizTotal = allQ.length;
         
-        if (state.qIdx < allQ.length) {
-            quizData = allQ[state.qIdx];
-        } else {
+        if (state.qIdx >= allQ.length) {
+            // Internal state transition without re-rendering yet
             state.view = 'result';
-            targetView = 'result';
+        } else {
+            quizData = allQ[state.qIdx];
         }
     }
 
+    // Capture the target view *after* potential internal state shift
+    const currentView = state.view;
+
     transitionView(() => {
-        if (targetView === 'welcome') {
+        if (currentView === 'welcome') {
             renderWelcome();
-        } else if (targetView === 'quiz' && quizData) {
+        } else if (currentView === 'quiz' && quizData) {
             renderQuiz(quizData, quizTotal);
-        } else if (targetView === 'result') {
+        } else if (currentView === 'result') {
             renderResult();
         }
     });
@@ -210,6 +248,27 @@ function renderQuiz(qData, totalSteps) {
 
 function renderResult() {
     const finalSong = calculateResult(state.group, state.answers, state.bank);
+    
+    // Defensive check for missing results
+    if (!finalSong) {
+        appEl.innerHTML = `
+            <div class="view-container">
+                <h1>星辰迷航</h1>
+                <p>在这个星系中暂时没能定位到你的坐标。</p>
+                <button id="restart-btn" class="btn-primary" style="margin-top: 2rem;">回到原点重新出发</button>
+            </div>
+        `;
+        document.getElementById('restart-btn').onclick = () => {
+            state.view = 'welcome';
+            state.qIdx = 0;
+            state.answers = {};
+            state.group = null;
+            state.history = [];
+            render();
+        };
+        return;
+    }
+
     const configData = state.bank.configurations?.[state.group] || {};
     const songDb = state.bank.song_database?.[finalSong] || {};
     const albumName = songDb.album || configData.result_profiles?.[finalSong]?.album || "未知专辑";
@@ -222,24 +281,39 @@ function renderResult() {
         let tag = rawIframe.replace(/src="\/\//i, 'src="https://');
         tag = tag.replace(/src="([^"]+)"/i, (m, src) => {
             const sep = src.includes('?') ? '&' : '?';
-            return `src="${src}${sep}autoplay=1" allow="autoplay; fullscreen"`;
+            // Added danmaku=0 and high_quality=1 for a cleaner premium experience
+            return `src="${src}${sep}autoplay=1&danmaku=0&high_quality=1" allow="autoplay; encrypted-media; fullscreen; picture-in-picture"`;
         });
         iframeHtml = tag;
     }
 
     appEl.innerHTML = `
         <div class="view-container result-block">
+            <div class="result-card-glow"></div>
             <p class="result-group-name">${configData.name || '性格底色'}</p>
             <div class="result-core-logic">${(configData.core_logic || "").replace(/\n/g, '<br>')}</div>
-            ${imgSrc ? `<div style="margin: 1rem auto; max-width: 400px;"><img src="${imgSrc}" loading="lazy" style="width:100%; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.5);"></div>` : ''}
+            
+            ${imgSrc ? `
+            <div class="result-image-wrapper">
+                <img src="${imgSrc}" loading="lazy" class="result-main-img">
+                <div class="img-shimmer"></div>
+            </div>` : ''}
+
             <h1 class="result-song-title">${finalSong}</h1>
             <p class="result-album-name">专辑《${albumName}》</p>
+            
             <div class="result-description">
-                <p style="font-weight:600; margin-bottom:1rem; color:var(--text-muted);">歌词与解读</p>
+                <div class="quote-mark">“</div>
                 <div>${description.replace(/\n/g, '<br>')}</div>
             </div>
+
             <div class="media-shell">${iframeHtml || `<p style="padding:2rem; color:#666;">（未在 iframe 清单中找到音频）</p>`}</div>
-            <button id="restart-btn" class="btn-primary" style="margin-top: 2rem;">重启寻找之旅</button>
+            
+            <div class="share-hint">—— 截图保留你的克卜勒星丛 ——</div>
+            
+            <button id="restart-btn" class="btn-primary" style="margin-top: 2rem; width: auto; min-width: 200px;">
+                重新寻找之旅
+            </button>
         </div>
     `;
 

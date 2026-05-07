@@ -101,27 +101,66 @@ body {
     to { offset-distance: 100%; }
 }
 
-/* Enhanced Star Field */
+/* Enhanced Star Field with Parallax support */
 .star-field {
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
+    top: -10%; left: -10%; width: 120%; height: 120%; /* Slightly larger for parallax margin */
     z-index: -8;
     pointer-events: none;
     background-image: 
         radial-gradient(1px 1px at 10% 20%, #fff, transparent),
-        radial-gradient(1px 1px at 30% 50%, #fff, transparent),
+        radial-gradient(1.5px 1.5px at 30% 50%, #fff, transparent),
         radial-gradient(2px 2px at 50% 80%, #fff, transparent),
         radial-gradient(1px 1px at 70% 30%, #fff, transparent),
         radial-gradient(2px 2px at 90% 10%, #fff, transparent),
         radial-gradient(1px 1px at 20% 70%, #fff, transparent);
     background-size: 200% 200%;
-    animation: starMove 100s linear infinite;
-    opacity: 0.4;
+    animation: starMove 120s linear infinite;
+    opacity: 0.5;
+    will-change: transform;
+    transition: transform 0.2s cubic-bezier(0.2, 0, 0.4, 1);
 }
 
 @keyframes starMove {
     from { background-position: 0 0; }
     to { background-position: 100% 100%; }
+}
+
+/* Celestial Loader Styling */
+.loader-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60vh;
+}
+
+.celestial-loader {
+    width: 60px;
+    height: 60px;
+    border: 2px solid var(--glass-border);
+    border-top-color: var(--accent-color);
+    border-radius: 50%;
+    animation: celestialSpin 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.celestial-loader::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 8px; height: 8px;
+    background: #fff;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 15px #fff;
+}
+
+@keyframes celestialSpin {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.2); }
+    100% { transform: rotate(360deg) scale(1); }
 }
 
 /* Shooting Stars */
@@ -305,8 +344,13 @@ h1 {
     background: rgba(255, 255, 255, 0.1);
     border-color: var(--accent-color);
     color: #fff;
-    transform: translateX(8px); /* Subtle slide instead of bounce */
+    transform: translateX(8px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.option-btn:active {
+    transform: translateX(4px) scale(0.98);
+    background: rgba(138, 43, 226, 0.15);
 }
 
 .option-btn::after {
@@ -323,30 +367,25 @@ h1 {
 }
 
 .back-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-dim);
-    font-size: 0.9rem;
-    margin-top: 2rem;
-    cursor: pointer;
-    text-decoration: underline;
-    opacity: 0.6;
-    transition: opacity 0.3s ease;
-}
-
-.back-btn:hover {
-    opacity: 1;
-}
-
-.back-btn {
-    margin-top: 1.5rem;
+    display: block;
     width: 100%;
+    margin-top: 1.5rem;
     padding: 1.25rem;
     background: transparent;
     border: 1px dashed var(--glass-border);
     color: var(--text-dim);
     border-radius: 20px;
     cursor: pointer;
+    font-size: 0.9rem;
+    text-decoration: none;
+    opacity: 0.6;
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    opacity: 1;
+    border-color: var(--accent-color);
+    color: var(--text-main);
 }
 
 /* Welcome Album Gallery */
@@ -403,45 +442,114 @@ h1 {
 
 /* Result Styles */
 .result-block { margin-top: 1rem; }
-.result-group-name {
-    color: var(--text-muted);
-    letter-spacing: 0.15em;
-    font-size: 0.95rem;
-    text-transform: uppercase;
+/* Result Styles */
+.result-block { 
+    position: relative;
+    margin-top: 1rem; 
+    padding: 2rem 0;
 }
-.result-core-logic {
-    text-align: left;
-    max-width: 42rem;
-    margin: 1rem auto;
-    color: #c8c8d0;
-    line-height: 1.75;
+
+.result-card-glow {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 80%; height: 80%;
+    background: radial-gradient(circle, rgba(138, 43, 226, 0.15) 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    z-index: -1;
+    filter: blur(40px);
+    animation: glowPulse 8s infinite alternate;
 }
+
+@keyframes glowPulse {
+    0% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1.2); }
+}
+
+.result-image-wrapper {
+    position: relative;
+    margin: 2rem auto;
+    max-width: 320px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    transform: perspective(1000px) rotateY(-5deg);
+    transition: transform 0.5s ease;
+}
+
+.result-image-wrapper:hover {
+    transform: perspective(1000px) rotateY(0deg) scale(1.02);
+}
+
+.result-main-img {
+    width: 100%;
+    display: block;
+}
+
+.img-shimmer {
+    position: absolute;
+    top: 0; left: -100%; width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    animation: shimmer 4s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    30% { left: 150%; }
+    100% { left: 150%; }
+}
+
 .result-song-title {
-    font-size: 3.8rem;
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
     font-weight: 800;
     margin: 1rem 0;
+    background: linear-gradient(to bottom, #fff, #b9bdcf);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 10px 20px rgba(0,0,0,0.3);
 }
-.result-album-name {
-    color: #bbb;
-    font-style: italic;
-    margin-bottom: 2rem;
-}
+
 .result-description {
+    position: relative;
     text-align: left;
-    max-width: 40rem;
-    margin: 2rem auto;
-    color: #c5c5ce;
-    line-height: 1.9;
+    max-width: 42rem;
+    margin: 3rem auto;
+    padding: 2.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    color: #d1d1da;
+    line-height: 2;
+    font-size: 1.05rem;
+}
+
+.quote-mark {
+    position: absolute;
+    top: -10px; left: 20px;
+    font-size: 5rem;
+    font-family: serif;
+    color: var(--accent-color);
+    opacity: 0.2;
+    line-height: 1;
+}
+
+.share-hint {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin: 2rem 0;
+    letter-spacing: 0.2em;
+    opacity: 0.6;
 }
 
 .media-shell {
-    margin: 2rem auto;
+    margin: 3rem auto;
     width: 100%;
     max-width: 720px;
     aspect-ratio: 16/9;
-    border-radius: 12px;
+    border-radius: 16px;
     overflow: hidden;
     background: #000;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+    border: 1px solid rgba(255,255,255,0.1);
 }
 
 .media-shell iframe {
