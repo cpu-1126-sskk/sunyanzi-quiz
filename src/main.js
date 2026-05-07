@@ -211,12 +211,15 @@ function renderQuiz(qData, totalSteps) {
                         <span>${labels[4]}</span>
                     </div>
                     <div class="likert-scale">
-                        ${[1, 2, 3, 4, 5].map(v => `
-                            <button class="likert-dot" data-score="${v}">
-                                <span class="dot-inner"></span>
-                                <span class="dot-label">${labels[v-1]}</span>
-                            </button>
-                        `).join('')}
+                        ${[1, 2, 3, 4, 5].map(v => {
+                            const isSelected = state.answers[qData.id] === v;
+                            return `
+                                <button class="likert-dot ${isSelected ? 'selected' : ''}" data-score="${v}">
+                                    <span class="dot-inner"></span>
+                                    <span class="dot-label">${labels[v-1]}</span>
+                                </button>
+                            `;
+                        }).join('')}
                     </div>
                 </div>
             </div>
@@ -225,6 +228,7 @@ function renderQuiz(qData, totalSteps) {
     `;
     appEl.querySelectorAll('.likert-dot').forEach(btn => {
         btn.addEventListener('click', () => {
+            if (isTransitioning) return;
             state.history.push(JSON.parse(JSON.stringify({ qIdx: state.qIdx, answers: state.answers })));
             state.answers[qData.id] = parseInt(btn.getAttribute('data-score'));
             state.qIdx++; render();
@@ -232,9 +236,12 @@ function renderQuiz(qData, totalSteps) {
     });
     const backBtn = document.getElementById('back-btn');
     if (backBtn) backBtn.addEventListener('click', () => {
+        if (isTransitioning) return;
         const prev = state.history.pop();
-        state.qIdx = prev.qIdx; state.answers = prev.answers;
-        render();
+        if (prev) {
+            state.qIdx = prev.qIdx; state.answers = prev.answers;
+            render();
+        }
     });
 }
 
