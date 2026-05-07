@@ -1,6 +1,6 @@
 :root {
     --accent-color: #6200ee;
-    --bg-gradient: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+    --bg-gradient: radial-gradient(ellipse at bottom, #0d1218 0%, #050608 100%);
     --glass-bg: rgba(255, 255, 255, 0.1);
     --glass-border: rgba(255, 255, 255, 0.2);
     --text-main: #FFFFFF;
@@ -29,17 +29,19 @@ body {
 .nebula-bg {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
+    /* 使用 CSS 变量来控制颜色变化 */
     background: 
-        radial-gradient(circle at 20% 30%, rgba(138, 43, 226, 0.15) 0%, transparent 40%),
-        radial-gradient(circle at 80% 70%, rgba(0, 191, 255, 0.1) 0%, transparent 40%);
+        radial-gradient(circle at 20% 30%, var(--nebula-color-1, rgba(138, 43, 226, 0.12)) 0%, transparent 45%),
+        radial-gradient(circle at 80% 70%, var(--nebula-color-2, rgba(0, 191, 255, 0.08)) 0%, transparent 45%);
     z-index: -10;
-    filter: blur(60px);
-    animation: nebulaPulse 10s infinite alternate ease-in-out;
+    filter: blur(80px) var(--nebula-filter, hue-rotate(0deg) saturate(1) grayscale(0) brightness(1.1));
+    transition: filter 12s cubic-bezier(0.25, 0.1, 0.25, 1.0), background 12s cubic-bezier(0.25, 0.1, 0.25, 1.0);
+    animation: nebulaPulse 12s infinite alternate ease-in-out;
 }
 
 @keyframes nebulaPulse {
-    0% { opacity: 0.5; transform: scale(1); }
-    100% { opacity: 1; transform: scale(1.1); }
+    0% { opacity: 0.4; transform: scale(1); }
+    100% { opacity: 0.8; transform: scale(1.08); }
 }
 
 /* Kepler System (3D Tilted Orbits) - Rebalanced for Content Clarity */
@@ -47,11 +49,13 @@ body {
     position: fixed;
     top: 55%; left: 50%;
     width: 0; height: 0;
-    z-index: -8; /* Moved above star-field */
+    z-index: -8;
     pointer-events: none;
     transform: translate(-50%, -50%) rotateX(68deg) rotateY(-5deg);
     transform-style: preserve-3d;
-    opacity: 0.6; /* Back to a more balanced visibility */
+    opacity: 0.6;
+    transition: box-shadow 1.5s ease-in-out; /* Smooth personality glow transition */
+    box-shadow: 0 0 100px transparent;
 }
 
 .sun {
@@ -308,14 +312,104 @@ h1 {
     will-change: transform, opacity;
 }
 
-.question-title {
-    font-size: 1.8rem; /* Slightly smaller for elegance */
-    line-height: 1.4;
-    font-weight: 800;
-    margin-bottom: 2.5rem;
-    background: linear-gradient(135deg, #FFFFFF 0%, #B9BDCF 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+.question-statement {
+    font-size: clamp(1.15rem, 4.5vw, 1.45rem);
+    line-height: 1.8;
+    margin-bottom: 4.5rem;
+    color: #fff;
+    font-weight: 300;
+    letter-spacing: 0.12em;
+    max-width: 720px;
+    padding: 0 2rem;
+    margin-left: auto;
+    margin-right: auto;
+    text-wrap: balance;
+    min-height: 5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    text-shadow: 0 0 20px rgba(255,255,255,0.1);
+}
+
+.likert-container {
+    margin: 2rem 0;
+    padding: 1rem;
+}
+
+.likert-anchors {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+.likert-scale {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    padding: 0 10px;
+}
+
+.likert-scale::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 10px; right: 10px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    z-index: 0;
+}
+
+.likert-dot {
+    position: relative;
+    width: 60px; height: 60px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dot-inner {
+    width: 18px; height: 18px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.dot-label {
+    position: absolute;
+    bottom: -25px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.likert-dot:hover .dot-inner {
+    background: var(--accent-color);
+    transform: scale(1.5);
+    box-shadow: 0 0 20px var(--accent-color);
+}
+
+.likert-dot:hover .dot-label {
+    opacity: 1;
+    bottom: -35px;
+    color: #fff;
+}
+
+.likert-dot:active {
+    transform: scale(0.9);
 }
 
 .options-grid {
@@ -527,6 +621,149 @@ h1 {
     opacity: 0.6;
 }
 
+.dimension-analyzer {
+    max-width: 420px;
+    margin: 2.5rem auto;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.radar-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1/1;
+}
+
+.radar-chart {
+    width: 100%;
+    height: 100%;
+}
+
+.radar-grid {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 0.5;
+}
+
+.radar-axis {
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 0.5;
+}
+
+.radar-data {
+    fill: rgba(138, 43, 226, 0.3);
+    stroke: var(--accent-color);
+    stroke-width: 2;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 8px var(--accent-color));
+    animation: radarPulse 4s infinite alternate ease-in-out;
+}
+
+@keyframes radarPulse {
+    from { fill: rgba(138, 43, 226, 0.2); }
+    to { fill: rgba(138, 43, 226, 0.4); }
+}
+
+.radar-labels {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+}
+
+.radar-labels span {
+    position: absolute;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+}
+
+.label-top { top: 8%; left: 50%; transform: translateX(-50%); }
+.label-tr { top: 28%; right: 8%; }
+.label-br { bottom: 28%; right: 8%; }
+.label-bottom { bottom: 8%; left: 50%; transform: translateX(-50%); }
+.label-bl { bottom: 28%; left: 8%; }
+.label-tl { top: 28%; left: 8%; }
+
+:root {
+    --accent-color: #b088ff; /* Kepler Violet - More premium */
+    --text-main: #ffffff;
+    --text-dim: rgba(255, 255, 255, 0.7);
+    --text-muted: rgba(255, 255, 255, 0.5);
+    --bg-dark: #050508;
+}
+
+.result-group-name {
+    font-size: 1.2rem; /* Massive boost */
+    color: var(--accent-color);
+    letter-spacing: 0.6em;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    font-weight: 800;
+}
+
+.result-core-logic {
+    font-size: 1.4rem;
+    line-height: 2.2;
+    color: var(--text-dim);
+    margin: 2rem auto 4rem;
+    max-width: 680px;
+    font-weight: 300;
+    letter-spacing: 0.12em;
+    text-align: center;
+    text-wrap: balance;
+    opacity: 0.95;
+}
+
+.result-core-logic strong {
+    color: var(--accent-color);
+    font-weight: 600;
+    text-shadow: 0 0 15px rgba(123, 104, 238, 0.4);
+    margin: 0 2px;
+}
+
+/* Share Card Export styles */
+#share-card-container {
+    background: #050508;
+    padding: 60px;
+    width: 600px;
+    position: fixed;
+    left: -9999px;
+}
+
+.card-album-img {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    display: block;
+}
+
+.qr-code-wrapper img {
+    width: 100px;
+    height: 100px;
+    border: 5px solid #fff;
+    border-radius: 8px;
+}
+
+.qr-text {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-top: 10px;
+    letter-spacing: 0.2em;
+}
+
+.analyzer-title {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    letter-spacing: 0.4em;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+    text-align: center;
+}
+
 .media-shell {
     margin: 3rem auto;
     width: 100%;
@@ -543,6 +780,53 @@ h1 {
     width: 100%;
     height: 100%;
     border: 0;
+}
+
+@media (max-width: 768px) {
+    .main-container {
+        padding: 1.5rem;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .question-card {
+        padding: 2.5rem 1.5rem;
+        border-radius: 24px;
+        margin: 0;
+    }
+
+    .question-statement {
+        font-size: 1.2rem;
+        line-height: 1.7;
+        margin-bottom: 3rem;
+        min-height: 6rem;
+    }
+
+    .likert-anchors {
+        margin-bottom: 1.5rem;
+        font-size: 0.8rem;
+    }
+
+    .likert-dot {
+        width: 50px; height: 50px; /* Slightly smaller for mobile layout */
+    }
+    
+    .dot-inner {
+        width: 16px; height: 16px;
+    }
+
+    .result-card {
+        padding: 2rem 1.2rem;
+        width: 95%;
+    }
+    
+    .radar-wrapper {
+        width: 100%;
+        max-width: 280px;
+        margin: 0 auto;
+    }
 }
 
 @media (max-width: 600px) {
