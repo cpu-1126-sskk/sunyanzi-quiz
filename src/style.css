@@ -844,12 +844,28 @@ h1 {
         font-size: 0.8rem;
     }
 
-    .likert-dot {
-        width: 50px; height: 50px; /* Slightly smaller for mobile layout */
+    .likert-dot:nth-child(1),
+    .likert-dot:nth-child(5) {
+        width: 50px; height: 50px;
     }
     
-    .dot-inner {
-        width: 16px; height: 16px;
+    .likert-dot:nth-child(2),
+    .likert-dot:nth-child(4) {
+        width: 38px; height: 38px;
+    }
+    
+    .likert-dot:nth-child(3) {
+        width: 28px; height: 28px;
+    }
+
+    /* Inner dot scaling */
+    .likert-dot:nth-child(1) .dot-inner, .likert-dot:nth-child(5) .dot-inner { width: 14px; height: 14px; }
+    .likert-dot:nth-child(2) .dot-inner, .likert-dot:nth-child(4) .dot-inner { width: 10px; height: 10px; }
+    .likert-dot:nth-child(3) .dot-inner { width: 8px; height: 8px; }
+
+    .dot-label {
+        font-size: 0.7rem;
+        top: calc(100% + 10px);
     }
 
     .result-card {
