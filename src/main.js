@@ -656,7 +656,7 @@ function renderResult() {
                 <button id="restart-btn" class="btn-outline">重新探索</button>
             </div>
             <div id="qr-code-zone" style="display:none"></div>
-            <div id="capture-area" style="position:fixed; top:-9999px; left:-9999px; width:450px"></div>
+            <div id="capture-area" style="position:fixed; top:-9999px; left:-9999px; width:540px; height:960px; overflow:hidden;"></div>
         </div>
     `;
 
@@ -670,8 +670,8 @@ function renderResult() {
         qrContainer.innerHTML = '';
         new QRCode(qrContainer, {
             text: window.location.href,
-            width: 80,
-            height: 80,
+            width: 120,
+            height: 120,
             colorDark: "#000000",
             colorLight: "#ffffff",
             correctLevel: QRCode.CorrectLevel.H
@@ -681,97 +681,95 @@ function renderResult() {
         const rarity = (1.2 + (hash % 500) / 100).toFixed(1);
         const rarityText = hash % 3 === 0 ? `潜意识稀有度：极度罕见` : `全网同类占比：${rarity}%`;
 
+        // Wait for QR code to be ready
+        await new Promise(r => setTimeout(r, 200));
+
         captureArea.innerHTML = `
-            <div style="border:1px solid rgba(255,255,255,0.1); padding:40px; border-radius:24px; position:relative; overflow:hidden; background:#0a0a0c; width:100%; height:100%; box-sizing:border-box; display:flex; flex-direction:column;">
-                <div style="position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(circle at center, rgba(138, 43, 226, 0.12) 0%, transparent 70%); z-index:0"></div>
-                <div style="position:relative; z-index:1; flex:1; display:flex; flex-direction:column;">
-                    <p style="text-transform:uppercase; letter-spacing:4px; font-size:12px; color:rgba(255,255,255,0.4); margin-bottom:20px; text-align:center">Kepler Personality Map</p>
+            <div style="width:540px; height:960px; background:#0a0a0c; color:#fff; font-family:sans-serif; position:relative; overflow:hidden; box-sizing:border-box; display:flex; flex-direction:column; padding:60px 40px;">
+                <div style="position:absolute; top:-20%; left:-20%; width:140%; height:140%; background:radial-gradient(circle at center, rgba(138, 43, 226, 0.15) 0%, transparent 70%); z-index:0"></div>
+                
+                <div style="position:relative; z-index:1; display:flex; flex-direction:column; height:100%;">
+                    <p style="text-transform:uppercase; letter-spacing:6px; font-size:14px; color:rgba(255,255,255,0.4); margin-bottom:30px; text-align:center">Kepler Personality Map</p>
                     
-                    <div style="display:flex; align-items:center; justify-content:center; flex-direction:column; gap:15px; margin-bottom:30px; text-align:center;">
-                         ${imgSrc ? `<img src="${imgSrc}" style="width:140px; height:140px; border-radius:50%; object-fit:cover; box-shadow:0 15px 35px rgba(0,0,0,0.6); border:2px solid rgba(255,255,255,0.1)">` : ''}
-                         <div>
-                            <h2 style="font-size:32px; margin:0; font-weight:800; letter-spacing:2px">${song}</h2>
-                            <p style="font-size:14px; color:var(--accent-color); margin:8px 0; letter-spacing:1px">${rarityText}</p>
-                         </div>
+                    <div style="text-align:center; margin-bottom:40px;">
+                         ${imgSrc ? `<img src="${imgSrc}" crossorigin="anonymous" style="width:160px; height:160px; border-radius:50%; object-fit:cover; margin-bottom:20px; border:3px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.5)">` : ''}
+                         <h2 style="font-size:36px; margin:0; font-weight:800; letter-spacing:2px;">${song}</h2>
+                         <p style="font-size:16px; color:#b088ff; margin:10px 0; font-weight:600;">${rarityText}</p>
                     </div>
 
-                    <div style="margin-bottom:25px; background:rgba(255,255,255,0.03); padding:20px; border-radius:20px; line-height:1.8; font-size:14px; color:#d1d1da">
-                        <div style="color:var(--accent-color); font-weight:800; margin-bottom:10px; font-size:13px; letter-spacing:1px">探测报告 // REPORT</div>
-                        ${soulReading}
-                        <div style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.05); padding-top:15px; opacity:0.8">
+                    <div style="background:rgba(255,255,255,0.05); padding:25px; border-radius:24px; margin-bottom:40px; line-height:1.8; font-size:16px; color:#e0e0e6">
+                        <div style="color:#b088ff; font-weight:800; margin-bottom:12px; font-size:14px; letter-spacing:1px">探测报告 // REPORT</div>
+                        <div style="font-weight:600; margin-bottom:15px;">${soulReading.replace(/<strong>/g, '<span style="color:#fff; font-weight:900">').replace(/<\/strong>/g, '</span>')}</div>
+                        <div style="opacity:0.8; font-size:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px;">
                             ${(songDb.description || "").replace(/\n/g, '<br>')}
                         </div>
                     </div>
 
-                    <div style="flex:1; display:flex; justify-content:center; align-items:center; margin-bottom:25px;">
-                        <svg viewBox="0 0 300 300" style="width:260px; height:260px" xmlns="http://www.w3.org/2000/svg">
+                    <div style="flex:1; display:flex; justify-content:center; align-items:center; margin-bottom:40px;">
+                        <!-- Radar SVG with simplified styles for html2canvas -->
+                        <svg viewBox="0 0 300 300" style="width:280px; height:280px" xmlns="http://www.w3.org/2000/svg">
                             ${[0.2, 0.4, 0.6, 0.8, 1.0].map(r => `
                                 <polygon points="${[0, 60, 120, 180, 240, 300].map(a => {
                                     const rad = (a - 90) * Math.PI / 180;
                                     return `${150 + 100 * r * Math.cos(rad)},${150 + 100 * r * Math.sin(rad)}`;
-                                }).join(' ')}" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+                                }).join(' ')}" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1" />
                             `).join('')}
                             <polygon points="${Object.keys(DIMENSION_NAMES).map((dim, i) => {
                                 const rad = (i * 60 - 90) * Math.PI / 180;
                                 const r = dims[dim] / 100;
                                 return `${150 + 100 * r * Math.cos(rad)},${150 + 100 * r * Math.sin(rad)}`;
-                            }).join(' ')}" fill="rgba(138, 43, 226, 0.35)" stroke="rgb(176, 136, 255)" stroke-width="3" />
+                            }).join(' ')}" fill="rgba(138, 43, 226, 0.4)" stroke="#b088ff" stroke-width="4" />
                         </svg>
                     </div>
 
-                    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:25px">
+                    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:40px">
                         ${Object.entries(dims).map(([dim, val]) => `
-                            <div style="text-align:center; background:rgba(255,255,255,0.02); padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.05)">
-                                <p style="font-size:11px; opacity:0.5; margin-bottom:4px">${DIMENSION_NAMES[dim]}</p>
-                                <p style="font-size:16px; font-weight:800; color:#b088ff">${val}%</p>
+                            <div style="text-align:center; background:rgba(255,255,255,0.03); padding:12px; border-radius:16px; border:1px solid rgba(255,255,255,0.08)">
+                                <p style="font-size:12px; opacity:0.5; margin-bottom:4px">${DIMENSION_NAMES[dim]}</p>
+                                <p style="font-size:18px; font-weight:800; color:#b088ff">${val}%</p>
                             </div>
                         `).join('')}
                     </div>
 
-                    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.1); padding-top:20px; margin-top:auto;">
-                         <div style="display:flex; align-items:center; gap:15px">
-                             <div id="final-qr-placeholder" style="width:70px; height:70px; background:#fff; padding:5px; border-radius:8px"></div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.15); padding-top:30px; margin-top:auto;">
+                         <div style="display:flex; align-items:center; gap:20px">
+                             <div id="final-qr-placeholder" style="width:90px; height:90px; background:#fff; padding:8px; border-radius:12px; display:flex; align-items:center; justify-content:center;"></div>
                              <div>
-                                 <p style="font-size:14px; font-weight:800; margin:0 0 4px 0; letter-spacing:1px">寻找克卜勒</p>
-                                 <p style="font-size:10px; opacity:0.4; margin:0">长按保存，寻找你的同类</p>
+                                 <p style="font-size:18px; font-weight:800; margin:0 0 6px 0; letter-spacing:1px">寻找克卜勒</p>
+                                 <p style="font-size:12px; opacity:0.5; margin:0">长按或扫描，寻找你的同类</p>
                              </div>
+                         </div>
+                         <div style="text-align:right; opacity:0.3; font-size:10px; letter-spacing:1px">
+                            DESIGNED BY<br>ANTIGRAVITY
                          </div>
                     </div>
                 </div>
             </div>
         `;
 
-
-        // Move generated QR to placeholder
         const placeholder = document.getElementById('final-qr-placeholder');
-        if (placeholder) {
-            placeholder.appendChild(qrContainer.firstChild);
+        if (placeholder && qrContainer.firstChild) {
+            placeholder.appendChild(qrContainer.firstChild.cloneNode(true));
         }
 
         try {
-            await new Promise(r => setTimeout(r, 100)); // Wait for render
+            await new Promise(r => setTimeout(r, 300)); // Wait for render and images
             
-            const svgElement = captureArea.querySelector('svg');
-            if (svgElement) {
-                const svgData = new XMLSerializer().serializeToString(svgElement);
-                const svgBase64 = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
-                const imgElement = document.createElement('img');
-                imgElement.src = svgBase64;
-                imgElement.style.width = svgElement.style.width || '280px';
-                imgElement.style.height = svgElement.style.height || '280px';
-                
-                await new Promise((resolve) => {
-                    imgElement.onload = resolve;
-                    imgElement.onerror = resolve; // Continue even if it fails
-                    svgElement.parentNode.replaceChild(imgElement, svgElement);
-                });
-            }
+            // Critical: Ensure all images in captureArea are loaded
+            const imgs = captureArea.querySelectorAll('img');
+            await Promise.all(Array.from(imgs).map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+            }));
 
             const canvas = await html2canvas(captureArea, { 
                 backgroundColor: '#0a0a0c', 
                 scale: 2, 
                 useCORS: true,
-                logging: false
+                allowTaint: true,
+                logging: false,
+                width: 540,
+                height: 960
             });
             const link = document.createElement('a'); 
             link.download = `Kepler-${song}.png`;
