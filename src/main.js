@@ -166,9 +166,9 @@ async function init() {
         currentY = lerp(currentY, targetY, 0.1);
 
         // Only update if difference is perceptible to save CPU
-        if (Math.abs(currentX - targetX) > 0.001 || Math.abs(currentY - targetY) > 0.001) {
+        if (Math.abs(currentX - targetX) > 0.005 || Math.abs(currentY - targetY) > 0.005) {
             if (starField) starField.style.transform = `translate3d(${currentX * 40}px, ${currentY * 40}px, 0)`;
-            if (kepler) kepler.style.transform = `translate3d(calc(-50% + ${currentX * -60}px), calc(-50% + ${currentY * -60}px), 0.1px) rotateX(68deg) rotateY(${-5 + currentX * 10}deg)`;
+            if (kepler) kepler.style.transform = `translate3d(-50%, -50%, 0) translate3d(${currentX * -60}px, ${currentY * -60}px, 0.1px) rotateX(68deg) rotateY(${-5 + currentX * 10}deg)`;
             requestAnimationFrame(applyParallax);
         } else {
             ticking = false;
