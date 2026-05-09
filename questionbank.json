@@ -2,7 +2,7 @@
     "project_info": {
         "title": "测测歌吧 - 孙燕姿性格测验",
         "description": "基于孙燕姿音乐作品维度的性格与生存哲学分析系统 (Likert Scale 2.0)",
-        "total_steps": 12,
+        "total_steps": 13,
         "likert_labels": ["很不同意", "不同意", "一般", "同意", "很同意"]
     },
     "questions": [
@@ -10,193 +10,207 @@
             "id": "Q1",
             "category": "survival",
             "statement": "身处极其内耗的环境时，我会毫不犹豫地选择立刻抽身离开，哪怕代价惨重。",
-            "dimension_weights": { "autonomy": 2, "fortitude": 1 }
+            "dimension_weights": { "autonomy": 2.2, "fortitude": 1.1 }
         },
         {
             "id": "Q2",
             "category": "survival",
             "statement": "面对过去的遗憾，我往往很难真正翻篇，总会忍不住回放当时哪里做得不够好。",
-            "dimension_weights": { "lucidity": -2, "persistence": 2 }
+            "dimension_weights": { "lucidity": -1.8, "persistence": 2.3 }
         },
         {
             "id": "Q3",
             "category": "survival",
             "statement": "促使我离开一个环境的原因，往往是“受够了现状”的冲动，而非看清了未来的退路。",
-            "dimension_weights": { "autonomy": 2, "lucidity": -1 }
+            "dimension_weights": { "autonomy": 1.9, "lucidity": -1.2 }
         },
         {
             "id": "Q4",
             "category": "emotion",
             "statement": "告别不再有意义的关系时，我更愿意划清界限并正式道别，而不是默不作声地消失。",
-            "dimension_weights": { "detachment": 1, "sincerity": 1, "autonomy": -1 }
+            "dimension_weights": { "detachment": 0.9, "sincerity": 1.2, "autonomy": -0.8 }
         },
         {
             "id": "Q5",
             "category": "self",
             "statement": "比起那些充满变数的冒险，我更倾向于待在绝对安全、可控的舒适圈里。",
-            "dimension_weights": { "fortitude": -2, "autonomy": -1 }
+            "dimension_weights": { "fortitude": -2.1, "autonomy": -1.1 }
         },
         {
             "id": "Q6",
             "category": "survival",
             "statement": "对于曾经付出的巨大心血，我常感到不甘和心疼，甚至怀疑离开是否是一个错误。",
-            "dimension_weights": { "persistence": 2, "lucidity": -2 }
+            "dimension_weights": { "persistence": 2.2, "lucidity": -1.9 }
         },
         {
             "id": "Q7",
             "category": "emotion",
             "statement": "情绪低落时，我会强迫自己变得“懂事”，在所有人面前假装已经彻底恢复。",
-            "dimension_weights": { "fortitude": 1, "sincerity": -2 }
+            "dimension_weights": { "fortitude": 0.8, "sincerity": -2.2 }
         },
         {
             "id": "Q8",
             "category": "emotion",
             "statement": "在一段关系里，如果对方表现出冷淡，我会立刻拉响自尊警报，主动选择退后。",
-            "dimension_weights": { "autonomy": 2, "persistence": -1 }
+            "dimension_weights": { "autonomy": 2.1, "persistence": -0.9 }
         },
         {
             "id": "Q9",
             "category": "emotion",
             "statement": "我害怕自己为了顾全大局而变成委曲求全的人，那样会让我感到极其羞耻。",
-            "dimension_weights": { "sincerity": 2, "autonomy": 1 }
+            "dimension_weights": { "sincerity": 2.3, "autonomy": 1.2 }
         },
         {
             "id": "Q10",
             "category": "emotion",
             "statement": "那些承载共同记忆的旧物（如礼物），我倾向于立刻销毁，而不是留着偶尔翻看。",
-            "dimension_weights": { "detachment": 2, "persistence": -2 }
+            "dimension_weights": { "detachment": 2.2, "persistence": -2.1 }
         },
         {
             "id": "Q11",
             "category": "social",
             "statement": "我坚信每个人都是独立的孤星，没必要为了排解孤独而强行挤进热闹的圈子。",
-            "dimension_weights": { "autonomy": 2, "detachment": 1 }
+            "dimension_weights": { "autonomy": 2.1, "detachment": 1.2 }
         },
         {
             "id": "Q12",
             "category": "social",
-            "statement": "身处喧闹的聚会时，我常有一种“玻璃罩外”的旁观感，很难真正投入其中。",
-            "dimension_weights": { "lucidity": 1, "autonomy": 1 }
+            "statement": "即便身处热闹的聚会，我总觉得自己像个拿着剧本的局外人，清醒地看着一切，却难以真正入戏。",
+            "dimension_weights": { "lucidity": 1.1, "autonomy": 1.3 }
         },
         {
             "id": "Q13",
             "category": "emotion",
             "statement": "面对极具吸引力但又危险的关系，我会任由自己沉沦，享受那种失去重力的疯狂。",
-            "dimension_weights": { "persistence": 1, "lucidity": -2, "detachment": 2 }
+            "dimension_weights": { "persistence": 0.9, "lucidity": -2.2, "detachment": 1.8 }
         },
         {
             "id": "Q14",
             "category": "social",
             "statement": "我更愿意维持一个客气的、安全的社交距离，而不是跟任何人建立深度的情感绑定。",
-            "dimension_weights": { "detachment": 2, "sincerity": -1 }
+            "dimension_weights": { "detachment": 2.3, "sincerity": -1.1 }
         },
         {
             "id": "Q15",
             "category": "self",
             "statement": "我觉得世界上没有什么东西是注定不能失去的，所有的聚散都只是偶然。",
-            "dimension_weights": { "lucidity": 2, "detachment": 2 }
+            "dimension_weights": { "lucidity": 2.1, "detachment": 1.9 }
         },
         {
             "id": "Q16",
             "category": "survival",
             "statement": "当我感到沮丧时，我会立刻通过疯狂运动或流汗来强行清空负能量。",
-            "dimension_weights": { "fortitude": 2 }
+            "dimension_weights": { "fortitude": 2.2 }
         },
         {
             "id": "Q17",
             "category": "social",
             "statement": "我极度讨厌社交中的弯弯绕绕，哪怕会得罪人，我也会选择有话直说。",
-            "dimension_weights": { "sincerity": 2, "autonomy": 1 }
+            "dimension_weights": { "sincerity": 2.4, "autonomy": 1.2 }
         },
         {
             "id": "Q18",
             "category": "survival",
             "statement": "我更在乎当下的感觉是否顺心，至于以后的得失，我并不想花太多精力去计算。",
-            "dimension_weights": { "sincerity": 1, "detachment": 2, "lucidity": -1 }
+            "dimension_weights": { "sincerity": 0.9, "detachment": 2.1, "lucidity": -0.8 }
         },
         {
             "id": "Q19",
             "category": "survival",
-            "statement": "碰壁时，我的第一反应是直接撞碎它，而不是思考是否有绕路的可能。",
-            "dimension_weights": { "fortitude": 2, "lucidity": -1 }
+            "statement": "当事情不如预期时，我的第一反应是保持原本的力度继续推进，而不是急于寻找更圆滑的妥协方案。",
+            "dimension_weights": { "fortitude": 2.3, "lucidity": -1.1 }
         },
         {
             "id": "Q20",
             "category": "survival",
             "statement": "如果生活变得一成不变且无聊，我会凭直觉干一件反常规的疯狂事来拯救自己。",
-            "dimension_weights": { "detachment": 2, "sincerity": 1 }
+            "dimension_weights": { "detachment": 2.1, "sincerity": 0.9 }
         },
         {
             "id": "Q21",
             "category": "self",
             "statement": "在成年人的游戏规则面前，我宁愿被看作“不合时宜”，也不愿磨平自己的棱角。",
-            "dimension_weights": { "sincerity": 2, "autonomy": 2 }
+            "dimension_weights": { "sincerity": 2.2, "autonomy": 2.2 }
         },
         {
             "id": "Q22",
             "category": "emotion",
             "statement": "现在的我，已经学会了把过去的伤痛当作人生必要的厚度，而不是沉重的负担。",
-            "dimension_weights": { "lucidity": 2, "fortitude": 1 }
+            "dimension_weights": { "lucidity": 2.4, "fortitude": 1.1 }
         },
         {
             "id": "Q23",
             "category": "emotion",
             "statement": "我觉得时间可以治愈一切，对于耿耿于怀的事，只要安静地熬过去就会变好。",
-            "dimension_weights": { "persistence": 1, "detachment": 1, "lucidity": -1 }
+            "dimension_weights": { "persistence": 1.2, "detachment": 0.9, "lucidity": -1.1 }
         },
         {
             "id": "Q24",
             "category": "social",
             "statement": "即便看透了虚伪，我心底仍然渴望遇到一个完全没有套路、绝对纯粹的人。",
-            "dimension_weights": { "sincerity": 2, "lucidity": -1 }
+            "dimension_weights": { "sincerity": 2.3, "lucidity": -0.9 }
         },
         {
             "id": "Q25",
             "category": "emotion",
-            "statement": "极度疲惫时，我会寻找童年的味道（如熟悉的食物）来作为最后的避难所。",
-            "dimension_weights": { "sincerity": 2, "persistence": 1 }
+            "statement": "即便知道结果可能注定是孤独，我仍然会去追逐那种‘必须试一次’的本能脉冲。",
+            "dimension_weights": { "sincerity": 2.1, "fortitude": 1.5 }
         },
         {
             "id": "Q26",
             "category": "aesthetic",
             "statement": "我理想的一天是宅在舒适的落地窗前，什么都不干，只是安静地发呆。",
-            "dimension_weights": { "detachment": 2, "lucidity": 1 }
+            "dimension_weights": { "detachment": 2.2, "lucidity": 1.3 }
         },
         {
             "id": "Q27",
             "category": "social",
             "statement": "即便是一个人呆着，我也常感到精力在莫名地流逝，很难获得真正的宁静。",
-            "dimension_weights": { "autonomy": -1, "detachment": -2, "lucidity": -1 }
+            "dimension_weights": { "autonomy": -1.2, "detachment": -2.4, "lucidity": -1.1 }
         },
         {
             "id": "Q28",
             "category": "self",
             "statement": "我不焦虑变老，反而觉得阅历的增加让我拥有了比年轻时更坚定的底气。",
-            "dimension_weights": { "lucidity": 2, "fortitude": 1 }
+            "dimension_weights": { "lucidity": 2.3, "fortitude": 1.2 }
         },
         {
             "id": "Q29",
             "category": "aesthetic",
             "statement": "看着别人疯狂内卷，我只觉得名利虚妄，只想守着自己的节奏过平凡生活。",
-            "dimension_weights": { "detachment": 2, "autonomy": 1 }
+            "dimension_weights": { "detachment": 2.1, "autonomy": 1.1 }
         },
         {
             "id": "Q30",
             "category": "aesthetic",
             "statement": "面对戾气和争吵，我更倾向于直接无视，把那看作一场滑稽的戏码。",
-            "dimension_weights": { "lucidity": 2, "detachment": 1 }
+            "dimension_weights": { "lucidity": 2.2, "detachment": 1.2 }
         },
         {
             "id": "Q31",
             "category": "survival",
             "statement": "即便新环境比预想中困难百倍，我也绝不会向曾经逃离的旧环境低头。",
-            "dimension_weights": { "fortitude": 2, "autonomy": 1 }
+            "dimension_weights": { "fortitude": 2.4, "autonomy": 1.3 }
         },
         {
             "id": "Q32",
             "category": "emotion",
             "statement": "如果关系已经变质，我宁愿让它留在最好的那一刻，也不愿忍受平庸的消耗。",
-            "dimension_weights": { "lucidity": 2, "detachment": 1 }
+            "dimension_weights": { "lucidity": 2.2, "detachment": 0.9 }
+        },
+        {
+            "id": "Q13_SORT",
+            "statement": "如果人生是一场漫长的星际航行，你会如何排列这些支撑你前行的动力？",
+            "type": "sort",
+            "options": [
+                { "id": "A", "text": "毫无防备却近乎天真的直觉，像最初点燃推进器的那抹火花。", "dim": "sincerity" },
+                { "id": "B", "text": "看清了宇宙的浩渺与荒芜，却依然决定去探索未知星系的热情。", "dim": "lucidity" },
+                { "id": "C", "text": "哪怕雷达上接收不到任何同类信号，也敢在深空里独自闪烁的底气。", "dim": "autonomy" },
+                { "id": "D", "text": "万物都在加速更迭的航程里，依然想把某段旧记忆安稳带到光年之外的温情。", "dim": "persistence" },
+                { "id": "E", "text": "哪怕偏离了既定航线，也能在失控的失重感里，重新构建自我重心的能力。", "dim": "fortitude" },
+                { "id": "F", "text": "当某段航程注定要告别时，能够干脆地切断引力，向下一片星云跃迁的轻盈。", "dim": "detachment" }
+            ],
+            "instruction": "最后一步。不要调用你的大脑，请完全遵循肌肉记忆和直觉进行拖拽，将你最认同的动力排在第一位。"
         }
     ],
     "song_database": {

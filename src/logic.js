@@ -15,39 +15,39 @@ export async function loadQuestionBank() {
 
 // 歌曲精神坐标数据库 (Song Archetypes) - 全量 33 首
 const SONG_ARCHETYPES = {
-    "天黑黑": { sincerity: 95, lucidity: 60, autonomy: 40, persistence: 50, fortitude: 50, detachment: 40 },
-    "逆光": { sincerity: 70, lucidity: 50, autonomy: 60, persistence: 40, fortitude: 95, detachment: 40 },
-    "我怀念的": { sincerity: 50, lucidity: 30, autonomy: 40, persistence: 95, fortitude: 60, detachment: 30 },
-    "遇见": { sincerity: 85, lucidity: 60, autonomy: 70, persistence: 50, fortitude: 50, detachment: 40 },
-    "爱情证书": { sincerity: 70, lucidity: 40, autonomy: 40, persistence: 80, fortitude: 50, detachment: 40 },
-    "我不难过": { sincerity: 30, lucidity: 60, autonomy: 60, persistence: 80, fortitude: 70, detachment: 50 },
-    "开始懂了": { sincerity: 40, lucidity: 95, autonomy: 50, persistence: 30, fortitude: 60, detachment: 80 },
-    "当冬夜渐暖": { sincerity: 60, lucidity: 90, autonomy: 50, persistence: 40, fortitude: 60, detachment: 85 },
-    "风衣": { sincerity: 75, lucidity: 50, autonomy: 40, persistence: 60, fortitude: 80, detachment: 50 },
-    "直来直往": { sincerity: 60, lucidity: 60, autonomy: 90, persistence: 30, fortitude: 70, detachment: 80 },
-    "第一天": { sincerity: 95, lucidity: 50, autonomy: 40, persistence: 40, fortitude: 60, detachment: 70 },
-    "雨天": { sincerity: 40, lucidity: 20, autonomy: 50, persistence: 90, fortitude: 30, detachment: 20 },
-    "天天年年": { sincerity: 90, lucidity: 50, autonomy: 40, persistence: 70, fortitude: 50, detachment: 40 },
-    "平日快乐": { sincerity: 60, lucidity: 95, autonomy: 40, persistence: 30, fortitude: 40, detachment: 90 },
-    "极美": { sincerity: 90, lucidity: 70, autonomy: 85, persistence: 40, fortitude: 50, detachment: 60 },
-    "克卜勒": { sincerity: 90, lucidity: 60, autonomy: 85, persistence: 50, fortitude: 40, detachment: 40 },
-    "完美的一天": { sincerity: 90, lucidity: 50, autonomy: 30, persistence: 40, fortitude: 40, detachment: 80 },
-    "同类": { sincerity: 70, lucidity: 50, autonomy: 85, persistence: 60, fortitude: 50, detachment: 40 },
-    "尚好的青春": { sincerity: 95, lucidity: 60, autonomy: 40, persistence: 85, fortitude: 50, detachment: 40 },
-    "我要的幸福": { sincerity: 85, lucidity: 60, autonomy: 60, persistence: 50, fortitude: 80, detachment: 50 },
-    "飘着": { sincerity: 50, lucidity: 30, autonomy: 40, persistence: 90, fortitude: 30, detachment: 20 },
-    "漩涡": { sincerity: 40, lucidity: 40, autonomy: 50, persistence: 85, fortitude: 40, detachment: 30 },
-    "超快感": { sincerity: 90, lucidity: 50, autonomy: 60, persistence: 40, fortitude: 75, detachment: 60 },
-    "累赘": { sincerity: 50, lucidity: 50, autonomy: 80, persistence: 40, fortitude: 50, detachment: 60 },
-    "风筝": { sincerity: 80, lucidity: 60, autonomy: 70, persistence: 40, fortitude: 50, detachment: 90 },
-    "逃亡": { sincerity: 60, lucidity: 40, autonomy: 90, persistence: 30, fortitude: 70, detachment: 50 },
-    "The Moment": { sincerity: 80, lucidity: 75, autonomy: 50, persistence: 40, fortitude: 60, detachment: 85 },
-    "梦不落": { sincerity: 80, lucidity: 50, autonomy: 40, persistence: 50, fortitude: 90, detachment: 60 },
-    "奔": { sincerity: 75, lucidity: 50, autonomy: 60, persistence: 40, fortitude: 95, detachment: 50 },
-    "我也很想他": { sincerity: 80, lucidity: 40, autonomy: 40, persistence: 85, fortitude: 50, detachment: 30 },
-    "绿光": { sincerity: 95, lucidity: 50, autonomy: 40, persistence: 40, fortitude: 95, detachment: 60 },
-    "神奇": { sincerity: 70, lucidity: 60, autonomy: 95, persistence: 50, fortitude: 50, detachment: 80 },
-    "我的爱": { sincerity: 85, lucidity: 40, autonomy: 50, persistence: 90, fortitude: 40, detachment: 30 }
+    "天黑黑": { sincerity: 97, lucidity: 58, autonomy: 37, persistence: 52, fortitude: 48, detachment: 41 },
+    "逆光": { sincerity: 72, lucidity: 49, autonomy: 63, persistence: 38, fortitude: 97, detachment: 41 },
+    "我怀念的": { sincerity: 53, lucidity: 27, autonomy: 42, persistence: 96, fortitude: 58, detachment: 31 },
+    "遇见": { sincerity: 87, lucidity: 62, autonomy: 73, persistence: 49, fortitude: 51, detachment: 39 },
+    "爱情证书": { sincerity: 72, lucidity: 37, autonomy: 39, persistence: 83, fortitude: 52, detachment: 41 },
+    "我不难过": { sincerity: 27, lucidity: 63, autonomy: 58, persistence: 82, fortitude: 71, detachment: 54 },
+    "开始懂了": { sincerity: 39, lucidity: 97, autonomy: 52, persistence: 27, fortitude: 63, detachment: 81 },
+    "当冬夜渐暖": { sincerity: 61, lucidity: 92, autonomy: 49, persistence: 37, fortitude: 58, detachment: 86 },
+    "风衣": { sincerity: 78, lucidity: 51, autonomy: 39, persistence: 63, fortitude: 82, detachment: 53 },
+    "直来直往": { sincerity: 62, lucidity: 59, autonomy: 93, persistence: 27, fortitude: 74, detachment: 81 },
+    "第一天": { sincerity: 96, lucidity: 47, autonomy: 43, persistence: 39, fortitude: 62, detachment: 71 },
+    "雨天": { sincerity: 39, lucidity: 17, autonomy: 49, persistence: 92, fortitude: 29, detachment: 19 },
+    "天天年年": { sincerity: 91, lucidity: 52, autonomy: 37, persistence: 74, fortitude: 49, detachment: 43 },
+    "平日快乐": { sincerity: 57, lucidity: 97, autonomy: 43, persistence: 29, fortitude: 39, detachment: 92 },
+    "极美": { sincerity: 92, lucidity: 71, autonomy: 86, persistence: 39, fortitude: 51, detachment: 64 },
+    "克卜勒": { sincerity: 93, lucidity: 62, autonomy: 87, persistence: 53, fortitude: 39, detachment: 41 },
+    "完美的一天": { sincerity: 92, lucidity: 49, autonomy: 27, persistence: 43, fortitude: 41, detachment: 84 },
+    "同类": { sincerity: 71, lucidity: 53, autonomy: 86, persistence: 64, fortitude: 51, detachment: 37 },
+    "尚好的青春": { sincerity: 96, lucidity: 63, autonomy: 39, persistence: 88, fortitude: 47, detachment: 41 },
+    "我要的幸福": { sincerity: 88, lucidity: 62, autonomy: 57, persistence: 51, fortitude: 83, detachment: 54 },
+    "飘着": { sincerity: 54, lucidity: 27, autonomy: 41, persistence: 93, fortitude: 29, detachment: 19 },
+    "漩涡": { sincerity: 39, lucidity: 43, autonomy: 51, persistence: 86, fortitude: 37, detachment: 29 },
+    "超快感": { sincerity: 91, lucidity: 53, autonomy: 64, persistence: 37, fortitude: 77, detachment: 62 },
+    "累赘": { sincerity: 51, lucidity: 49, autonomy: 81, persistence: 37, fortitude: 47, detachment: 64 },
+    "风筝": { sincerity: 84, lucidity: 57, autonomy: 71, persistence: 39, fortitude: 53, detachment: 93 },
+    "逃亡": { sincerity: 62, lucidity: 37, autonomy: 91, persistence: 29, fortitude: 74, detachment: 49 },
+    "The Moment": { sincerity: 81, lucidity: 77, autonomy: 51, persistence: 39, fortitude: 62, detachment: 86 },
+    "梦不落": { sincerity: 83, lucidity: 53, autonomy: 37, persistence: 51, fortitude: 92, detachment: 64 },
+    "奔": { sincerity: 77, lucidity: 49, autonomy: 62, persistence: 39, fortitude: 96, detachment: 51 },
+    "我也很想他": { sincerity: 84, lucidity: 37, autonomy: 41, persistence: 88, fortitude: 51, detachment: 27 },
+    "绿光": { sincerity: 97, lucidity: 47, autonomy: 43, persistence: 41, fortitude: 96, detachment: 63 },
+    "神奇": { sincerity: 71, lucidity: 64, autonomy: 97, persistence: 53, fortitude: 51, detachment: 82 },
+    "我的爱": { sincerity: 86, lucidity: 39, autonomy: 51, persistence: 93, fortitude: 37, detachment: 27 }
 };
 
 export function calculateResult(answers, bank, sessionQuestions = []) {
@@ -72,18 +72,30 @@ export function calculateResult(answers, bank, sessionQuestions = []) {
         const q = targetQuestions.find(item => item.id === qId);
         if (!q) continue;
 
+        if (q.type === 'sort' && Array.isArray(choiceScore)) {
+            const weights = [10, 6.5, 3.5, 1.5, 0.5, 0];
+            choiceScore.forEach((optId, index) => {
+                const opt = q.options.find(o => o.id === optId);
+                if (opt && opt.dim && dimensions.hasOwnProperty(opt.dim)) {
+                    dimensions[opt.dim] += weights[index] || 0;
+                    maxPossible[opt.dim] += 10;
+                }
+            });
+            continue;
+        }
+
         const score = parseInt(choiceScore);
         const weights = q.dimension_weights || {};
 
     for (const dim of allDims) {
-        // AG Logic: If a dimension isn't mentioned, give it a 'Shadow Weight' of 0.1
-        const weight = weights[dim] !== undefined ? weights[dim] : 0.1;
+        // AG Logic: If a dimension isn't mentioned, give it a tiny 'Shadow Weight' of 0.01
+        // This prevents the 'shrunken radar' without diluting the real test results.
+        const isExplicit = weights[dim] !== undefined;
+        const weight = isExplicit ? weights[dim] : 0.01;
         
         if (dimensions.hasOwnProperty(dim)) {
             const absWeight = Math.abs(weight);
             
-            // AG Balanced Accelerated Scoring: 
-            // 1:0, 2:1.5, 3:3, 4:6, 5:10
             const getPowerScore = (s) => {
                 const map = [0, 0, 1.5, 3, 6, 10];
                 return map[s] || 0;
@@ -95,10 +107,16 @@ export function calculateResult(answers, bank, sessionQuestions = []) {
 
             maxPossible[dim] += 10 * absWeight;
 
-            if (weight > 0) {
-                dimensions[dim] += getPowerScore(score) * weight;
+            if (isExplicit) {
+                if (weight > 0) {
+                    dimensions[dim] += getPowerScore(score) * weight;
+                } else {
+                    dimensions[dim] += getInvPowerScore(score) * absWeight;
+                }
             } else {
-                dimensions[dim] += getInvPowerScore(score) * absWeight;
+                // Shadow weight contributes a static 'Neutral' baseline (3 points)
+                // Using 0.01 weight means it won't dilute the real 1.0-2.0 weights.
+                dimensions[dim] += getPowerScore(3) * absWeight;
             }
         }
     }
@@ -127,9 +145,10 @@ for (const dim in dimensions) {
             distanceSq += Math.pow(userVal - archVal, 2);
         }
         
-        // Add a tiny bit of random 'noise' (0.0001) to the distance 
-        // to break mathematical ties and make it feel like 'fate'.
-        const distance = Math.sqrt(distanceSq) + (Math.random() * 0.01);
+        // Deterministic Tie-Breaker: 使用歌曲名称的字符编码之和产生微小的确定性偏移
+        // 彻底干掉随机数，保证重测信度 (Test-Retest Reliability) 绝对严密。
+        const deterministicNoise = song.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) * 0.00001;
+        const distance = Math.sqrt(distanceSq) + deterministicNoise;
 
         if (distance < minDistance) {
             minDistance = distance;

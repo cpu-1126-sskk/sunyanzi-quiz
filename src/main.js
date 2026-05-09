@@ -75,83 +75,135 @@ let state = {
     lastMaxDim: null
 };
 
+let audioCtx;
+let ambientOscillator;
+let ambientGain;
+
+function initAudio() {
+    if (audioCtx) return;
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    audioCtx = new AudioContext();
+    
+    ambientOscillator = audioCtx.createOscillator();
+    ambientOscillator.type = 'sine';
+    ambientOscillator.frequency.value = 55;
+    
+    const lfo = audioCtx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 0.1;
+    const lfoGain = audioCtx.createGain();
+    lfoGain.gain.value = 5;
+    lfo.connect(lfoGain);
+    lfoGain.connect(ambientOscillator.frequency);
+    lfo.start();
+
+    const bufferSize = audioCtx.sampleRate * 2;
+    const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+    
+    const noiseNode = audioCtx.createBufferSource();
+    noiseNode.buffer = noiseBuffer;
+    noiseNode.loop = true;
+    
+    const noiseFilter = audioCtx.createBiquadFilter();
+    noiseFilter.type = 'lowpass';
+    noiseFilter.frequency.value = 300; 
+
+    ambientGain = audioCtx.createGain();
+    ambientGain.gain.value = 0; 
+
+    ambientOscillator.connect(ambientGain);
+    noiseNode.connect(noiseFilter);
+    noiseFilter.connect(ambientGain);
+    ambientGain.connect(audioCtx.destination);
+    
+    ambientOscillator.start();
+    noiseNode.start();
+}
+
+function startAmbientNoise() {
+    if (!audioCtx) initAudio();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    if (ambientGain) {
+        ambientGain.gain.cancelScheduledValues(audioCtx.currentTime);
+        ambientGain.gain.setTargetAtTime(0.4, audioCtx.currentTime, 2); 
+    }
+}
+
+function stopAmbientNoise() {
+    if (ambientGain && audioCtx) {
+        ambientGain.gain.cancelScheduledValues(audioCtx.currentTime);
+        ambientGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
+    }
+}
+
 const appEl = document.getElementById('app');
 
+window.addEventListener('beforeunload', (e) => {
+    if (state.view === 'quiz') {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+
 async function init() {
+    let ticking = false;
+    let targetX = 0;
+    let targetY = 0;
+    let starField = null;
+    let kepler = null;
+
+    const applyParallax = () => {
+        if (!starField) starField = document.querySelector('.star-field');
+        if (!kepler) kepler = document.querySelector('.kepler-system');
+        if (starField) starField.style.transform = `translate3d(${targetX * 50}px, ${targetY * 50}px, 0)`;
+        if (kepler) kepler.style.transform = `translate3d(calc(-50% + ${targetX * -80}px), calc(-50% + ${targetY * -80}px), 0) rotateX(68deg) rotateY(${-5 + targetX * 10}deg)`;
+        ticking = false;
+    };
+
     const updateParallax = (x, y) => {
-        const starField = document.querySelector('.star-field');
-        const kepler = document.querySelector('.kepler-system');
-        if (starField) starField.style.transform = `translate(${x * 50}px, ${y * 50}px)`;
-        if (kepler) kepler.style.transform = `translate(calc(-50% + ${x * -80}px), calc(-50% + ${y * -80}px)) rotateX(68deg) rotateY(${-5 + x * 10}deg)`;
+        targetX = x; targetY = y;
+        if (!ticking) {
+            requestAnimationFrame(applyParallax);
+            ticking = true;
+        }
     };
 
     document.addEventListener('mousemove', (e) => {
         updateParallax((e.clientX / window.innerWidth) - 0.5, (e.clientY / window.innerHeight) - 0.5);
     });
 
-    // Mobile Gyroscope Support
     if (window.DeviceOrientationEvent) {
         window.addEventListener('deviceorientation', (e) => {
             if (e.beta === null || e.gamma === null) return;
-            // AG Logic: Gamma (-90 to 90), Beta (-180 to 180)
-            // We map comfortable tilt ranges to -0.5 -> 0.5
             const x = Math.max(-1, Math.min(1, e.gamma / 30)); 
             const y = Math.max(-1, Math.min(1, (e.beta - 45) / 30));
             updateParallax(x, y);
-        }, true);
+        });
     }
 
     state.bank = await loadQuestionBank();
     state.iframeMap = await loadIframeMap();
-    updateDynamicBackground(true);
     render();
 }
 
-function updateDynamicBackground(isInitial = false) {
-    let maxDim = 'neutral';
-    
-    if (!isInitial) {
-        const res = calculateResult(state.answers, state.bank);
-        if (res && res.dimensions) {
-            const sorted = Object.entries(res.dimensions).sort((a, b) => b[1] - a[1]);
-            maxDim = sorted[0][0];
-        }
-    }
-    
-    if (maxDim === state.lastMaxDim) return;
-    state.lastMaxDim = maxDim;
-
-    const colorMatrix = {
-        neutral: { filter: 'hue-rotate(0deg) saturate(1) grayscale(0.2) brightness(1.1)', c1: 'rgba(138, 43, 226, 0.15)' },
-        sincerity: { filter: 'hue-rotate(0deg) saturate(2) grayscale(0) brightness(1.1)', c1: 'rgba(255, 69, 0, 0.25)' },
-        lucidity: { filter: 'hue-rotate(190deg) saturate(1.8) grayscale(0) brightness(1.1)', c1: 'rgba(0, 191, 255, 0.22)' },
-        autonomy: { filter: 'hue-rotate(270deg) saturate(2.2) grayscale(0) brightness(1.1)', c1: 'rgba(138, 43, 226, 0.28)' },
-        persistence: { filter: 'hue-rotate(330deg) saturate(2.5) grayscale(0) brightness(1.1)', c1: 'rgba(220, 20, 60, 0.25)' },
-        fortitude: { filter: 'hue-rotate(120deg) saturate(1.8) grayscale(0) brightness(1.1)', c1: 'rgba(34, 139, 34, 0.22)' },
-        detachment: { filter: 'hue-rotate(0deg) saturate(0.5) grayscale(0.4) brightness(1.3)', c1: 'rgba(200, 200, 255, 0.22)' }
-    };
-    
-    const config = colorMatrix[maxDim] || colorMatrix.neutral;
-    const root = document.documentElement;
-    root.style.setProperty('--nebula-filter', config.filter);
-    root.style.setProperty('--nebula-color-1', config.c1);
-}
-
 function render() {
-    if (!state.bank) {
-        appEl.innerHTML = `<div class="view-container loader-wrapper"><div class="celestial-loader"></div><p style="letter-spacing: 0.5em; color: var(--text-dim);">正在找寻克卜勒...</p></div>`;
-        return;
+    const quizData = state.sessionQuestions[state.qIdx];
+    const quizTotal = state.sessionQuestions.length;
+    
+    // Auto-transition to result if we exceed question count
+    if (state.view === 'quiz' && state.qIdx >= quizTotal) {
+        state.view = 'result';
+        updateBackground(); // Final state
     }
-    let quizData = null;
-    let quizTotal = state.bank.project_info.total_steps || 12;
-    if (state.view === 'quiz') {
-        if (state.qIdx >= state.sessionQuestions.length) state.view = 'result';
-        else { quizData = state.sessionQuestions[state.qIdx]; updateDynamicBackground(); }
-    }
+    
     const currentView = state.view;
     transitionView(() => {
         if (currentView === 'welcome') renderWelcome();
         else if (currentView === 'quiz' && quizData) renderQuiz(quizData, quizTotal);
+        else if (currentView === 'calculating') renderCalculating();
         else if (currentView === 'result') renderResult();
     });
 }
@@ -167,33 +219,124 @@ function renderWelcome() {
         </div>
     `;
     document.getElementById('start-btn').addEventListener('click', async () => {
-        // AG Logic: Request Gyroscope Permission for iOS 13+
+        startAmbientNoise();
         if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
             try { await DeviceOrientationEvent.requestPermission(); } catch (e) {}
         }
-
-        const allQuestions = state.bank.questions || [];
-        const totalToPick = state.bank.project_info.total_steps || 12;
-        const pools = {};
-        allQuestions.forEach(q => {
-            const cat = q.category || 'other';
-            if (!pools[cat]) pools[cat] = [];
-            pools[cat].push(q);
-        });
-        Object.values(pools).forEach(p => p.sort(() => 0.5 - Math.random()));
-        const selected = [];
-        const categories = Object.keys(pools);
-        let catIdx = 0;
-        while (selected.length < totalToPick && categories.length > 0) {
-            const cat = categories[catIdx % categories.length];
-            if (pools[cat].length > 0) selected.push(pools[cat].pop());
-            else { categories.splice(catIdx % categories.length, 1); continue; }
-            catIdx++;
-        }
-        state.sessionQuestions = selected.sort(() => 0.5 - Math.random());
-        state.view = 'quiz'; state.qIdx = 0; state.answers = {}; state.history = [];
-        render();
+        initQuiz();
     });
+}
+
+function initQuiz() {
+    const allQuestions = state.bank.questions || [];
+    const pools = {};
+    allQuestions.forEach(q => {
+        if (q.id === 'Q13_SORT') return;
+        const cat = q.category || 'other';
+        if (!pools[cat]) pools[cat] = [];
+        pools[cat].push(q);
+    });
+
+    const selected = [];
+    const categories = Object.keys(pools);
+    Object.values(pools).forEach(p => p.sort(() => 0.5 - Math.random()));
+
+    let cIdx = 0;
+    while (selected.length < 12 && categories.length > 0) {
+        const cat = categories[cIdx % categories.length];
+        if (pools[cat].length > 0) {
+            selected.push(pools[cat].pop());
+        } else {
+            categories.splice(cIdx % categories.length, 1);
+            continue;
+        }
+        cIdx++;
+    }
+
+    state.sessionQuestions = selected.sort(() => 0.5 - Math.random());
+    const q13 = allQuestions.find(q => q.id === 'Q13_SORT');
+    if (q13) state.sessionQuestions.push(q13);
+
+    state.view = 'quiz'; state.qIdx = 0; state.answers = {}; state.history = [];
+    updateBackground();
+    render();
+
+    // Background Asset Preloading (静默预加载专辑封面，干掉白屏)
+    setTimeout(() => {
+        Object.values(ASSETS_MAP).forEach(fileName => {
+            const img = new Image();
+            img.src = `assets/${fileName}`;
+        });
+    }, 500);
+}
+
+const DIMENSION_COLORS = {
+    sincerity: { c1: 'rgba(255, 140, 0, 0.18)', c2: 'rgba(255, 69, 0, 0.12)' },    // Warm Orange/Gold (赤诚)
+    lucidity: { c1: 'rgba(0, 255, 255, 0.15)', c2: 'rgba(0, 191, 255, 0.12)' },    // Clear Cyan/Blue (通透)
+    autonomy: { c1: 'rgba(138, 43, 226, 0.22)', c2: 'rgba(75, 0, 130, 0.18)' },   // Deep Midnight Purple (孤傲)
+    persistence: { c1: 'rgba(50, 205, 50, 0.12)', c2: 'rgba(34, 139, 34, 0.1)' }, // Nature Green (执守)
+    fortitude: { c1: 'rgba(47, 79, 79, 0.25)', c2: 'rgba(0, 0, 0, 0.8)' },        // Dark Gunmetal/Slate (坚韧 - 沉重、冷硬、金属感)
+    detachment: { c1: 'rgba(240, 248, 255, 0.25)', c2: 'rgba(176, 224, 230, 0.15)' }, // Ethereal White/Ice Blue (洒脱 - 轻盈、云淡风轻)
+    other: { c1: 'rgba(75, 0, 130, 0.15)', c2: 'rgba(25, 25, 112, 0.12)' }
+};
+
+const BASE_NEUTRAL_COLOR_1 = [75, 0, 130, 0.15]; 
+const BASE_NEUTRAL_COLOR_2 = [25, 25, 112, 0.12]; 
+
+function extractRgba(rgbaString) {
+    const match = rgbaString.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+    if (!match) return [0,0,0,0];
+    return [parseInt(match[1]), parseInt(match[2]), parseInt(match[3]), parseFloat(match[4] || 1)];
+}
+
+function updateBackground() {
+    const total = state.sessionQuestions.length || 13;
+    const progress = state.qIdx / total;
+    const root = document.documentElement;
+
+    if (state.view === 'welcome') {
+        root.style.setProperty('--nebula-color-1', `rgba(${BASE_NEUTRAL_COLOR_1.join(',')})`);
+        root.style.setProperty('--nebula-color-2', `rgba(${BASE_NEUTRAL_COLOR_2.join(',')})`);
+        return;
+    }
+
+    if (state.view === 'result') {
+        const result = calculateResult(state.answers, state.bank, state.sessionQuestions);
+        const sortedDims = Object.entries(result.dimensions).sort((a, b) => b[1] - a[1]);
+        const primaryDim = sortedDims[0][0];
+        const colors = DIMENSION_COLORS[primaryDim] || DIMENSION_COLORS.other;
+        root.style.setProperty('--nebula-color-1', colors.c1);
+        root.style.setProperty('--nebula-color-2', colors.c2);
+        return;
+    }
+
+    const partialResult = calculateResult(state.answers, state.bank, state.sessionQuestions.slice(0, state.qIdx));
+    let primaryDim = 'other';
+    if (partialResult && partialResult.dimensions) {
+        const sortedDims = Object.entries(partialResult.dimensions).sort((a, b) => b[1] - a[1]);
+        if (sortedDims.length > 0 && sortedDims[0][1] > 0) {
+            primaryDim = sortedDims[0][0];
+        }
+    }
+
+    const targetColors = DIMENSION_COLORS[primaryDim] || DIMENSION_COLORS.other;
+    const tC1 = extractRgba(targetColors.c1);
+    const tC2 = extractRgba(targetColors.c2);
+
+    const blendFactor = Math.pow(progress, 1.5); 
+
+    const r1 = Math.round(BASE_NEUTRAL_COLOR_1[0] + (tC1[0] - BASE_NEUTRAL_COLOR_1[0]) * blendFactor);
+    const g1 = Math.round(BASE_NEUTRAL_COLOR_1[1] + (tC1[1] - BASE_NEUTRAL_COLOR_1[1]) * blendFactor);
+    const b1 = Math.round(BASE_NEUTRAL_COLOR_1[2] + (tC1[2] - BASE_NEUTRAL_COLOR_1[2]) * blendFactor);
+    const a1 = (BASE_NEUTRAL_COLOR_1[3] + (tC1[3] - BASE_NEUTRAL_COLOR_1[3]) * blendFactor).toFixed(3);
+
+    const r2 = Math.round(BASE_NEUTRAL_COLOR_2[0] + (tC2[0] - BASE_NEUTRAL_COLOR_2[0]) * blendFactor);
+    const g2 = Math.round(BASE_NEUTRAL_COLOR_2[1] + (tC2[1] - BASE_NEUTRAL_COLOR_2[1]) * blendFactor);
+    const b2 = Math.round(BASE_NEUTRAL_COLOR_2[2] + (tC2[2] - BASE_NEUTRAL_COLOR_2[2]) * blendFactor);
+    const a2 = (BASE_NEUTRAL_COLOR_2[3] + (tC2[3] - BASE_NEUTRAL_COLOR_2[3]) * blendFactor).toFixed(3);
+
+    root.style.setProperty('--nebula-color-1', `rgba(${r1}, ${g1}, ${b1}, ${a1})`);
+    root.style.setProperty('--nebula-color-2', `rgba(${r2}, ${g2}, ${b2}, ${a2})`);
 }
 
 function renderQuiz(qData, totalSteps) {
@@ -205,44 +348,215 @@ function renderQuiz(qData, totalSteps) {
             <div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div></div>
             <div class="question-card">
                 <p class="question-statement">${qData.statement}</p>
-                <div class="likert-container">
-                    <div class="likert-anchors">
-                        <span>${labels[0]}</span>
-                        <span>${labels[4]}</span>
-                    </div>
-                    <div class="likert-scale">
-                        ${[1, 2, 3, 4, 5].map(v => {
-                            const isSelected = state.answers[qData.id] === v;
-                            return `
-                                <button class="likert-dot ${isSelected ? 'selected' : ''}" data-score="${v}">
-                                    <span class="dot-inner"></span>
-                                    <span class="dot-label">${labels[v-1]}</span>
-                                </button>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
+                <div id="interaction-zone"></div>
             </div>
-            ${state.qIdx > 0 ? `<button id="back-btn" class="back-btn">返回上一颗星</button>` : ''}
         </div>
     `;
-    appEl.querySelectorAll('.likert-dot').forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (isTransitioning) return;
-            state.history.push(JSON.parse(JSON.stringify({ qIdx: state.qIdx, answers: state.answers })));
-            state.answers[qData.id] = parseInt(btn.getAttribute('data-score'));
-            state.qIdx++; render();
-        });
-    });
-    const backBtn = document.getElementById('back-btn');
-    if (backBtn) backBtn.addEventListener('click', () => {
-        if (isTransitioning) return;
-        const prev = state.history.pop();
-        if (prev) {
-            state.qIdx = prev.qIdx; state.answers = prev.answers;
+
+    const zone = document.getElementById('interaction-zone');
+    const container = appEl.querySelector('.view-container');
+    
+    const next = () => { 
+        state.qIdx++; 
+        updateBackground(); 
+        if (state.qIdx >= totalSteps) {
+            state.view = 'calculating';
             render();
+        } else {
+            render(); 
         }
-    });
+    };
+    const back = () => {
+        const prev = state.history.pop();
+        if (prev) { state.qIdx = prev.qIdx; state.answers = prev.answers; delete state.tempSort; updateBackground(); render(); }
+    };
+
+    if (qData.type === 'sort') {
+        renderSort(qData, zone);
+    } else {
+        const likert = document.createElement('div');
+        likert.className = 'likert-container';
+        likert.innerHTML = `
+            <div class="likert-anchors"><span>${labels[0]}</span><span>${labels[4]}</span></div>
+            <div class="likert-scale">
+                ${[1, 2, 3, 4, 5].map(v => `
+                    <button class="likert-dot ${state.answers[qData.id] === v ? 'selected' : ''}" data-score="${v}">
+                        <span class="dot-inner"></span><span class="dot-label">${labels[v-1]}</span>
+                    </button>
+                `).join('')}
+            </div>
+        `;
+        zone.appendChild(likert);
+        likert.querySelectorAll('.likert-dot').forEach(btn => {
+            btn.onclick = () => {
+                if (isTransitioning || state.answers[qData.id] !== undefined) return;
+                state.history.push(JSON.parse(JSON.stringify({ qIdx: state.qIdx, answers: state.answers })));
+                state.answers[qData.id] = parseInt(btn.getAttribute('data-score'));
+                
+                likert.querySelectorAll('.likert-dot').forEach(d => d.classList.remove('selected'));
+                btn.classList.add('selected');
+                
+                if (navigator.vibrate) navigator.vibrate(50);
+                setTimeout(next, 300);
+            };
+        });
+    }
+
+    if (state.qIdx > 0) {
+        const backBtn = document.createElement('button');
+        backBtn.className = 'back-btn';
+        backBtn.innerText = '← 返回星迹';
+        backBtn.onclick = back;
+        container.appendChild(backBtn);
+    }
+}
+
+function renderSort(q, zone) {
+    const instr = document.createElement('p');
+    instr.className = 'sort-instruction';
+    instr.innerText = q.instruction || '请按契合度将选项排序：';
+    zone.appendChild(instr);
+
+    const sortContainer = document.createElement('div');
+    sortContainer.className = 'sort-container';
+    
+    const sortRanks = document.createElement('div');
+    sortRanks.className = 'sort-ranks';
+    
+    const sortList = document.createElement('div');
+    sortList.className = 'sort-list';
+    
+    if (!state.tempSort) {
+        state.tempSort = q.options.map(o => o.id);
+    }
+
+    function updateSortUI() {
+        sortList.innerHTML = '';
+        sortRanks.innerHTML = '';
+        state.tempSort.forEach((id, index) => {
+            // Add fixed orbital rank
+            const rankEl = document.createElement('div');
+            rankEl.className = 'rank-num';
+            rankEl.style.animationDelay = `${index * 0.1}s`;
+            rankEl.innerText = index + 1;
+            sortRanks.appendChild(rankEl);
+
+            // Add draggable orbital item
+            const opt = q.options.find(o => o.id === id);
+            const item = document.createElement('div');
+            item.className = 'sort-item';
+            item.draggable = true;
+            item.style.animation = `slideIn 0.5s ease backwards ${index * 0.05}s`;
+            item.innerHTML = `<div class="sort-text">${opt.text}</div><div class="sort-handle">≡</div>`;
+            
+            item.ondragstart = (e) => { e.dataTransfer.setData('text/plain', index); item.classList.add('dragging'); };
+            item.ondragend = () => item.classList.remove('dragging');
+            item.ondragover = (e) => e.preventDefault();
+            item.ondrop = (e) => {
+                e.preventDefault();
+                const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+                const movedItem = state.tempSort.splice(fromIdx, 1)[0];
+                state.tempSort.splice(index, 0, movedItem);
+                updateSortUI();
+            };
+
+            // Mobile Touch Events for Drag & Drop
+            let touchStartY = 0;
+            let touchDiffY = 0;
+            item.addEventListener('touchstart', (e) => {
+                touchStartY = e.touches[0].clientY;
+                touchDiffY = 0;
+                item.classList.add('dragging');
+                item.style.transition = 'none';
+                item.style.zIndex = 100;
+            }, { passive: true });
+            
+            item.addEventListener('touchmove', (e) => {
+                touchDiffY = e.touches[0].clientY - touchStartY;
+                item.style.transform = `translateY(${touchDiffY}px)`;
+                e.preventDefault();
+            }, { passive: false });
+            
+            item.addEventListener('touchend', (e) => {
+                item.classList.remove('dragging');
+                item.style.transition = '';
+                item.style.transform = '';
+                item.style.zIndex = '';
+                
+                if (Math.abs(touchDiffY) > 30) {
+                    const step = Math.round(touchDiffY / 70); 
+                    let newIndex = index + step;
+                    newIndex = Math.max(0, Math.min(state.tempSort.length - 1, newIndex));
+                    if (newIndex !== index) {
+                        const movedItem = state.tempSort.splice(index, 1)[0];
+                        state.tempSort.splice(newIndex, 0, movedItem);
+                        updateSortUI();
+                        return;
+                    }
+                }
+                touchDiffY = 0;
+            });
+
+            // Mobile fallback: Tap to move up (Orbit jump)
+            item.onclick = () => {
+                if (Math.abs(touchDiffY) < 5 && index > 0) {
+                    const movedItem = state.tempSort.splice(index, 1)[0];
+                    state.tempSort.splice(index - 1, 0, movedItem);
+                    updateSortUI();
+                }
+            };
+            sortList.appendChild(item);
+        });
+    }
+
+    updateSortUI();
+    sortContainer.appendChild(sortRanks);
+    sortContainer.appendChild(sortList);
+    zone.appendChild(sortContainer);
+
+    const submitBtn = document.createElement('button');
+    submitBtn.className = 'btn-primary';
+    submitBtn.style.marginTop = '2.5rem';
+    submitBtn.style.width = '100%';
+    submitBtn.innerText = '确认航道排序';
+    submitBtn.onclick = () => {
+        state.history.push(JSON.parse(JSON.stringify({ qIdx: state.qIdx, answers: state.answers })));
+        state.answers[q.id] = [...state.tempSort];
+        delete state.tempSort;
+        state.qIdx++;
+        updateBackground();
+        if (state.qIdx >= state.sessionQuestions.length) {
+            state.view = 'calculating';
+        }
+        render();
+    };
+    zone.appendChild(submitBtn);
+}
+
+function renderCalculating() {
+    appEl.innerHTML = `
+        <div class="view-container" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; text-align:center;">
+            <div style="width:50px; height:50px; border:3px solid rgba(255,255,255,0.1); border-top-color:var(--accent-color); border-radius:50%; animation:spin 1s linear infinite;"></div>
+            <div id="calc-text" style="margin-top:2rem; font-size:1.1rem; color:var(--text-dim); letter-spacing:0.2em; animation:pulseText 2s infinite alternate;">正在读取潜意识坐标...</div>
+        </div>
+    `;
+    const phases = ["正在读取潜意识坐标...", "正在剥离社会化伪装...", "正在匹配克卜勒同类..."];
+    let phaseIdx = 0;
+    const interval = setInterval(() => {
+        phaseIdx++;
+        const textEl = document.getElementById('calc-text');
+        if (textEl && phases[phaseIdx]) textEl.innerText = phases[phaseIdx];
+    }, 1200);
+
+    setTimeout(() => {
+        clearInterval(interval);
+        stopAmbientNoise();
+        setTimeout(() => {
+            state.view = 'result';
+            updateBackground();
+            render();
+        }, 1200); // 1.2s vacuum
+    }, 3600);
 }
 
 function renderResult() {
@@ -275,102 +589,207 @@ function renderResult() {
             <div class="dimension-analyzer">
                 <p class="analyzer-title">性格轨道星图</p>
                 <div class="radar-wrapper">
-                    <svg viewBox="0 0 300 300" class="radar-chart">
+                    <div id="radar-tooltip" class="radar-tooltip"></div>
+                    <svg viewBox="0 0 300 300" class="radar-chart" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <radialGradient id="radarGradient" cx="50%" cy="50%" r="50%">
                                 <stop offset="0%" stop-color="var(--accent-color)" stop-opacity="0.6" />
                                 <stop offset="100%" stop-color="var(--accent-color)" stop-opacity="0.1" />
                             </radialGradient>
-                            <filter id="glow">
-                                <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-                                <feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                            <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+                                <feGaussianBlur stdDeviation="3" result="blur" />
+                                <feComposite in="SourceGraphic" in2="blur" operator="over" />
                             </filter>
                         </defs>
-                        <!-- Grid Lines -->
-                        ${[25, 50, 75, 95].map(r => `<circle cx="150" cy="150" r="${r}" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" />`).join('')}
-                        ${[0, 60, 120, 180, 240, 300].map(a => {
-                            const rad = (a * Math.PI) / 180;
-                            return `<line x1="150" y1="150" x2="${150 + 95 * Math.sin(rad)}" y2="${150 - 95 * Math.cos(rad)}" stroke="rgba(255,255,255,0.05)" />`;
+                        <!-- Radar Grids -->
+                        ${[0.2, 0.4, 0.6, 0.8, 1.0].map(r => `
+                            <polygon points="${[0, 60, 120, 180, 240, 300].map(a => {
+                                const rad = (a - 90) * Math.PI / 180;
+                                return `${150 + 100 * r * Math.cos(rad)},${150 + 100 * r * Math.sin(rad)}`;
+                            }).join(' ')}" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+                        `).join('')}
+                        <!-- Dimension Lines -->
+                        ${Object.keys(DIMENSION_NAMES).map((_, i) => {
+                            const rad = (i * 60 - 90) * Math.PI / 180;
+                            return `<line x1="150" y1="150" x2="${150 + 100 * Math.cos(rad)}" y2="${150 + 100 * Math.sin(rad)}" stroke="rgba(255,255,255,0.1)" />`;
                         }).join('')}
-                        
                         <!-- Data Polygon -->
-                        ${(() => {
-                            const getR = (v) => (v / 100) * 95; // Max 95px now
-                            const keys = ['sincerity', 'lucidity', 'autonomy', 'persistence', 'fortitude', 'detachment'];
-                            const pts = keys.map((k, i) => {
-                                const angle = (i * 60) * (Math.PI / 180);
-                                const r = getR(dims[k] || 0);
-                                return { x: 150 + r * Math.sin(angle), y: 150 - r * Math.cos(angle) };
-                            });
-                            const d = `M ${pts[0].x} ${pts[0].y} ` + pts.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ') + ' Z';
-                            return `
-                                <path d="${d}" fill="url(#radarGradient)" stroke="var(--accent-color)" stroke-width="2.5" />
-                                ${pts.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3.5" fill="#fff" filter="url(#glow)" />`).join('')}
-                            `;
-                        })()}
+                        <polygon points="${Object.keys(DIMENSION_NAMES).map((dim, i) => {
+                            const rad = (i * 60 - 90) * Math.PI / 180;
+                            const r = dims[dim] / 100;
+                            return `${150 + 100 * r * Math.cos(rad)},${150 + 100 * r * Math.sin(rad)}`;
+                        }).join(' ')}" fill="url(#radarGradient)" stroke="var(--accent-color)" stroke-width="3" filter="url(#glow)" />
+                        <!-- Data Points -->
+                        ${Object.keys(DIMENSION_NAMES).map((dim, i) => {
+                            const rad = (i * 60 - 90) * Math.PI / 180;
+                            const r = dims[dim] / 100;
+                            const x = 150 + 100 * r * Math.cos(rad);
+                            const y = 150 + 100 * r * Math.sin(rad);
+                            return `<circle cx="${x}" cy="${y}" r="4" fill="#fff" onmouseover="showRadarTooltip(event, '${DIMENSION_NAMES[dim]}', ${dims[dim]})" onmouseout="hideRadarTooltip()" />`;
+                        }).join('')}
                     </svg>
-                    <div class="radar-labels">
-                        <span class="label-top">赤诚</span><span class="label-tr">通透</span><span class="label-br">孤傲</span>
-                        <span class="label-bottom">执守</span><span class="label-bl">坚韧</span><span class="label-tl">洒脱</span>
-                    </div>
                 </div>
             </div>
-            <div class="media-shell">${iframeHtml}</div>
-            <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
-                <button id="save-card-btn" class="btn-primary" style="background: var(--accent-color); border:none">生成分享卡片</button>
-                <button id="restart-btn" class="btn-primary" style="background: rgba(255,255,255,0.1)">重新出发</button>
+            <div class="result-iframe-wrapper">
+                ${iframeHtml}
+                <div class="audio-fallback" style="margin-top:15px; text-align:center;">
+                    <a href="https://music.163.com/#/search/m/?s=孙燕姿%20${encodeURIComponent(song)}&type=1" target="_blank" style="color:rgba(255,255,255,0.4); font-size:0.85rem; text-decoration:underline; letter-spacing:1px; display:inline-block; padding:10px;">
+                        🎵 若视频加载受限，点此前往网易云聆听原曲
+                    </a>
+                </div>
             </div>
+            <div class="action-buttons">
+                <button id="save-card-btn" class="btn-primary">生成分享卡片</button>
+                <button id="restart-btn" class="btn-outline">重新探索</button>
+            </div>
+            <div id="qr-code-zone" style="display:none"></div>
+            <div id="capture-area" style="position:fixed; top:-9999px; left:-9999px; width:450px"></div>
         </div>
     `;
 
-    document.getElementById('save-card-btn').onclick = async () => {
-        const btn = document.getElementById('save-card-btn');
-        btn.innerText = "正在星际冲印..."; btn.disabled = true;
-        const shareContainer = document.getElementById('share-card-container');
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.href)}`;
-        shareContainer.innerHTML = `
-            <div id="capture-area" style="background:#0a0a0c; color:#fff; padding:60px; text-align:center; font-family:'Outfit',sans-serif; width:600px; display:flex; flex-direction:column; align-items:center">
-                <p style="color:#b088ff; letter-spacing:8px; margin-bottom:15px; font-weight:800; font-size:18px; text-transform:uppercase">Finding Kepler · Report</p>
-                <p style="font-size:18px; margin-bottom:40px; color:#fff; line-height:1.6; width:100%; text-align:center">
-                    在你的性格星群中，<br>
-                    <span style="color:#b088ff; font-weight:800">【${starDim}】</span>是永恒闪烁的恒星，<br>
-                    而<span style="color:#b088ff; font-weight:800">【${planetDim}】</span>是围绕它旋转的卫星。
-                </p>
-                ${imgSrc ? `<img src="${imgSrc}" style="width:280px; height:280px; border-radius:15px; margin-bottom:30px; box-shadow:0 20px 40px rgba(0,0,0,0.5); object-fit:cover">` : ''}
-                <h1 style="font-size:48px; margin-bottom:10px; font-weight:800; letter-spacing:2px">${song}</h1>
-                <p style="opacity:0.6; margin-bottom:40px; font-size:20px">专辑《${songDb.album || '未知'}》</p>
-                <div style="font-size:18px; line-height:2; margin-bottom:50px; text-align:left; border-left:4px solid #b088ff; padding-left:30px; color:#d1d1da; width:100%">
-                    ${(songDb.description || "").replace(/\n/g, '<br>')}
-                </div>
-                <div style="background:rgba(255,255,255,0.03); padding:40px; border-radius:24px; border:1px solid rgba(255,255,255,0.1); width:100%">
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:25px; text-align:left">
-                        ${Object.entries(dims).map(([k,v]) => `
-                            <div>
-                                <div style="display:flex; justify-content:space-between; font-size:14px; margin-bottom:8px">
-                                    <span>${DIMENSION_NAMES[k]}</span><span>${v}%</span>
-                                </div>
-                                <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px"><div style="width:${v}%; height:100%; background:linear-gradient(90deg, #b088ff, #fff); border-radius:3px"></div></div>
+    const captureArea = document.getElementById('capture-area');
+    
+    document.getElementById('save-card-btn').onclick = async function() {
+        const btn = this; btn.innerText = "生成中..."; btn.disabled = true;
+        
+        // Generate QR Code dynamically
+        const qrContainer = document.getElementById('qr-code-zone');
+        qrContainer.innerHTML = '';
+        new QRCode(qrContainer, {
+            text: window.location.href,
+            width: 80,
+            height: 80,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+        const hash = song.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const rarity = (1.2 + (hash % 500) / 100).toFixed(1);
+        const rarityText = hash % 3 === 0 ? \`潜意识稀有度：极度罕见\` : \`全网同类占比：\${rarity}%\`;
+
+        captureArea.innerHTML = \`
+            <div style="border:1px solid rgba(255,255,255,0.1); padding:40px; border-radius:24px; position:relative; overflow:hidden; background:#0a0a0c; width:100%; height:100%; box-sizing:border-box; display:flex; flex-direction:column;">
+                <div style="position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(circle at center, rgba(138, 43, 226, 0.12) 0%, transparent 70%); z-index:0"></div>
+                <div style="position:relative; z-index:1; flex:1; display:flex; flex-direction:column;">
+                    <p style="text-transform:uppercase; letter-spacing:4px; font-size:12px; color:rgba(255,255,255,0.4); margin-bottom:20px; text-align:center">Kepler Personality Map</p>
+                    
+                    <div style="display:flex; align-items:center; justify-content:center; flex-direction:column; gap:15px; margin-bottom:30px; text-align:center;">
+                         \${imgSrc ? \`<img src="\${imgSrc}" style="width:140px; height:140px; border-radius:50%; object-fit:cover; box-shadow:0 15px 35px rgba(0,0,0,0.6); border:2px solid rgba(255,255,255,0.1)">\` : ''}
+                         <div>
+                            <h2 style="font-size:32px; margin:0; font-weight:800; letter-spacing:2px">\${song}</h2>
+                            <p style="font-size:14px; color:var(--accent-color); margin:8px 0; letter-spacing:1px">\${rarityText}</p>
+                         </div>
+                    </div>
+
+                    <div style="margin-bottom:25px; background:rgba(255,255,255,0.03); padding:20px; border-radius:20px; line-height:1.8; font-size:14px; color:#d1d1da">
+                        <div style="color:var(--accent-color); font-weight:800; margin-bottom:10px; font-size:13px; letter-spacing:1px">探测报告 // REPORT</div>
+                        \${soulReading}
+                        <div style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.05); padding-top:15px; opacity:0.8">
+                            \${(songDb.description || "").replace(/\\n/g, '<br>')}
+                        </div>
+                    </div>
+
+                    <div style="flex:1; display:flex; justify-content:center; align-items:center; margin-bottom:25px;">
+                        <svg viewBox="0 0 300 300" style="width:260px; height:260px" xmlns="http://www.w3.org/2000/svg">
+                            \${[0.2, 0.4, 0.6, 0.8, 1.0].map(r => \`
+                                <polygon points="\${[0, 60, 120, 180, 240, 300].map(a => {
+                                    const rad = (a - 90) * Math.PI / 180;
+                                    return \`\${150 + 100 * r * Math.cos(rad)},\${150 + 100 * r * Math.sin(rad)}\`;
+                                }).join(' ')}" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+                            \`).join('')}
+                            <polygon points="\${Object.keys(DIMENSION_NAMES).map((dim, i) => {
+                                const rad = (i * 60 - 90) * Math.PI / 180;
+                                const r = dims[dim] / 100;
+                                return \`\${150 + 100 * r * Math.cos(rad)},\${150 + 100 * r * Math.sin(rad)}\`;
+                            }).join(' ')}" fill="rgba(138, 43, 226, 0.35)" stroke="rgb(176, 136, 255)" stroke-width="3" />
+                        </svg>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:25px">
+                        \${Object.entries(dims).map(([dim, val]) => \`
+                            <div style="text-align:center; background:rgba(255,255,255,0.02); padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.05)">
+                                <p style="font-size:11px; opacity:0.5; margin-bottom:4px">\${DIMENSION_NAMES[dim]}</p>
+                                <p style="font-size:16px; font-weight:800; color:#b088ff">\${val}%</p>
                             </div>
-                        `).join('')}
+                        \`).join('')}
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.1); padding-top:20px; margin-top:auto;">
+                         <div style="display:flex; align-items:center; gap:15px">
+                             <div id="final-qr-placeholder" style="width:70px; height:70px; background:#fff; padding:5px; border-radius:8px"></div>
+                             <div>
+                                 <p style="font-size:14px; font-weight:800; margin:0 0 4px 0; letter-spacing:1px">寻找克卜勒</p>
+                                 <p style="font-size:10px; opacity:0.4; margin:0">长按保存，寻找你的同类</p>
+                             </div>
+                         </div>
                     </div>
                 </div>
-                <div style="margin-top:60px; display:flex; flex-direction:column; align-items:center">
-                    <img id="qr-image" src="${qrUrl}" crossorigin="anonymous" style="width:110px; border:4px solid #fff; border-radius:10px; background:#fff">
-                    <p style="font-size:12px; color:#888; margin-top:15px; letter-spacing:4px">扫码识别 寻找你的克卜勒</p>
-                </div>
             </div>
-        `;
+        \`;
+
+        // Move generated QR to placeholder
+        const placeholder = document.getElementById('final-qr-placeholder');
+        if (placeholder) {
+            placeholder.appendChild(qrContainer.firstChild);
+        }
+
         try {
-            await new Promise(r => { const img = document.getElementById('qr-image'); img.complete ? r() : img.onload = r; });
-            const canvas = await html2canvas(document.getElementById('capture-area'), { backgroundColor: '#0a0a0c', scale: 2, useCORS: true });
-            const link = document.createElement('a'); link.download = `Kepler-${song}.png`;
-            link.href = canvas.toDataURL('image/png'); link.click();
-        } catch (e) { alert("生成失败，请尝试手动截图。"); }
-        finally { btn.innerText = "生成分享卡片"; btn.disabled = false; }
+            await new Promise(r => setTimeout(r, 100)); // Wait for render
+            
+            const svgElement = captureArea.querySelector('svg');
+            if (svgElement) {
+                const svgData = new XMLSerializer().serializeToString(svgElement);
+                const svgBase64 = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+                const imgElement = document.createElement('img');
+                imgElement.src = svgBase64;
+                imgElement.style.width = svgElement.style.width || '280px';
+                imgElement.style.height = svgElement.style.height || '280px';
+                
+                await new Promise((resolve) => {
+                    imgElement.onload = resolve;
+                    imgElement.onerror = resolve; // Continue even if it fails
+                    svgElement.parentNode.replaceChild(imgElement, svgElement);
+                });
+            }
+
+            const canvas = await html2canvas(captureArea, { 
+                backgroundColor: '#0a0a0c', 
+                scale: 2, 
+                useCORS: true,
+                logging: false
+            });
+            const link = document.createElement('a'); 
+            link.download = `Kepler-${song}.png`;
+            link.href = canvas.toDataURL('image/png'); 
+            link.click();
+        } catch (e) { 
+            console.error(e);
+            alert("生成失败。"); 
+        } finally { 
+            btn.innerText = "生成分享卡片"; 
+            btn.disabled = false; 
+        }
     };
 
     document.getElementById('restart-btn').onclick = () => {
         state.view = 'welcome'; state.qIdx = 0; state.answers = {}; state.history = []; render();
     };
 }
+
+window.showRadarTooltip = function(e, label, val) {
+    const tt = document.getElementById('radar-tooltip');
+    if (!tt) return;
+    tt.innerHTML = `${label}: <span style="color:var(--accent-color); font-weight:800">${val}%</span>`;
+    tt.style.opacity = '1';
+    const rect = e.target.closest('.radar-wrapper').getBoundingClientRect();
+    tt.style.left = `${e.clientX - rect.left}px`;
+    tt.style.top = `${e.clientY - rect.top - 40}px`;
+};
+
+window.hideRadarTooltip = function() {
+    const tt = document.getElementById('radar-tooltip');
+    if (tt) tt.style.opacity = '0';
+};
+
 init();
