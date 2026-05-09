@@ -656,7 +656,7 @@ function renderResult() {
                 <button id="restart-btn" class="btn-outline">重新探索</button>
             </div>
             <div id="qr-code-zone" style="display:none"></div>
-            <div id="capture-area" style="position:fixed; top:-9999px; left:-9999px; width:540px; height:960px; overflow:hidden;"></div>
+            <div id="capture-area" style="position:fixed; top:-9999px; left:-9999px; width:540px; height:auto; overflow:visible;"></div>
         </div>
     `;
 
@@ -685,7 +685,7 @@ function renderResult() {
         await new Promise(r => setTimeout(r, 200));
 
         captureArea.innerHTML = `
-            <div style="width:540px; height:960px; background:#0a0a0c; color:#fff; font-family:sans-serif; position:relative; overflow:hidden; box-sizing:border-box; display:flex; flex-direction:column; padding:60px 40px;">
+            <div style="width:540px; min-height:960px; height:auto; background:#0a0a0c; color:#fff; font-family:sans-serif; position:relative; overflow:hidden; box-sizing:border-box; display:flex; flex-direction:column; padding:60px 40px;">
                 <div style="position:absolute; top:-20%; left:-20%; width:140%; height:140%; background:radial-gradient(circle at center, rgba(138, 43, 226, 0.15) 0%, transparent 70%); z-index:0"></div>
                 
                 <div style="position:relative; z-index:1; display:flex; flex-direction:column; height:100%;">
@@ -699,15 +699,15 @@ function renderResult() {
 
                     <div style="background:rgba(255,255,255,0.05); padding:25px; border-radius:24px; margin-bottom:40px; line-height:1.8; font-size:16px; color:#e0e0e6">
                         <div style="color:#b088ff; font-weight:800; margin-bottom:12px; font-size:14px; letter-spacing:1px">探测报告 // REPORT</div>
-                        <div style="font-weight:600; margin-bottom:15px;">${soulReading.replace(/<strong>/g, '<span style="color:#fff; font-weight:900">').replace(/<\/strong>/g, '</span>')}</div>
-                        <div style="opacity:0.8; font-size:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px;">
+                        <div style="font-weight:600; margin-bottom:15px; letter-spacing:0;">${soulReading.replace(/【/g, '').replace(/】/g, '').replace(/<strong>/g, '<span style="color:#fff; font-weight:900">').replace(/<\/strong>/g, '</span>')}</div>
+                        <div style="opacity:0.8; font-size:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px; letter-spacing:0;">
                             ${(songDb.description || "").replace(/\n/g, '<br>')}
                         </div>
                     </div>
 
                     <div style="flex:1; display:flex; justify-content:center; align-items:center; margin-bottom:40px;">
                         <!-- Radar SVG with simplified styles for html2canvas -->
-                        <svg viewBox="0 0 300 300" style="width:280px; height:280px" xmlns="http://www.w3.org/2000/svg">
+                        <svg viewBox="-20 -20 340 340" style="width:300px; height:300px" xmlns="http://www.w3.org/2000/svg">
                             ${[0.2, 0.4, 0.6, 0.8, 1.0].map(r => `
                                 <polygon points="${[0, 60, 120, 180, 240, 300].map(a => {
                                     const rad = (a - 90) * Math.PI / 180;
@@ -719,6 +719,18 @@ function renderResult() {
                                 const r = dims[dim] / 100;
                                 return `${150 + 100 * r * Math.cos(rad)},${150 + 100 * r * Math.sin(rad)}`;
                             }).join(' ')}" fill="rgba(138, 43, 226, 0.4)" stroke="#b088ff" stroke-width="4" />
+                            ${Object.keys(DIMENSION_NAMES).map((dim, i) => {
+                                const rad = (i * 60 - 90) * Math.PI / 180;
+                                const x = 150 + 125 * Math.cos(rad);
+                                const y = 150 + 125 * Math.sin(rad);
+                                let anchor = "middle";
+                                if (x < 140) anchor = "end";
+                                if (x > 160) anchor = "start";
+                                let dy = 5;
+                                if (y < 140) dy = 0;
+                                if (y > 160) dy = 12;
+                                return `<text x="${x}" y="${y}" fill="rgba(255,255,255,0.8)" font-size="14" font-weight="800" text-anchor="${anchor}" dy="${dy}">${DIMENSION_NAMES[dim]}</text>`;
+                            }).join('')}
                         </svg>
                     </div>
 
@@ -747,9 +759,17 @@ function renderResult() {
             </div>
         `;
 
+        // Generate QR code directly into the placeholder canvas instead of cloning
         const placeholder = document.getElementById('final-qr-placeholder');
-        if (placeholder && qrContainer.firstChild) {
-            placeholder.appendChild(qrContainer.firstChild.cloneNode(true));
+        if (placeholder) {
+            new QRCode(placeholder, {
+                text: window.location.href,
+                width: 74,
+                height: 74,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
         }
 
         try {
@@ -762,14 +782,19 @@ function renderResult() {
                 return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
             }));
 
-            const canvas = await html2canvas(captureArea, { 
+            const contentDiv = captureArea.querySelector('div');
+            const captureHeight = contentDiv.offsetHeight || 960;
+
+            const canvas = await html2canvas(contentDiv, { 
                 backgroundColor: '#0a0a0c', 
                 scale: 2, 
                 useCORS: true,
                 allowTaint: true,
                 logging: false,
                 width: 540,
-                height: 960
+                height: captureHeight,
+                windowWidth: 540,
+                windowHeight: captureHeight
             });
             const link = document.createElement('a'); 
             link.download = `Kepler-${song}.png`;
