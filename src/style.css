@@ -322,7 +322,6 @@ h1 {
     justify-content: center;
     text-align: center;
     text-shadow: 0 0 20px rgba(255,255,255,0.1);
-}
     align-items: center;
     justify-content: center;
     text-align: center;
@@ -731,8 +730,6 @@ h1 {
     opacity: 1;
 }
 
-/* Result Styles */
-.result-block { margin-top: 1rem; }
 /* Result Styles */
 .result-block { 
     position: relative;
