@@ -666,53 +666,53 @@ function renderResult() {
 
         const hash = song.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
         const rarity = (1.2 + (hash % 500) / 100).toFixed(1);
-        const rarityText = hash % 3 === 0 ? \`潜意识稀有度：极度罕见\` : \`全网同类占比：\${rarity}%\`;
+        const rarityText = hash % 3 === 0 ? `潜意识稀有度：极度罕见` : `全网同类占比：${rarity}%`;
 
-        captureArea.innerHTML = \`
+        captureArea.innerHTML = `
             <div style="border:1px solid rgba(255,255,255,0.1); padding:40px; border-radius:24px; position:relative; overflow:hidden; background:#0a0a0c; width:100%; height:100%; box-sizing:border-box; display:flex; flex-direction:column;">
                 <div style="position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(circle at center, rgba(138, 43, 226, 0.12) 0%, transparent 70%); z-index:0"></div>
                 <div style="position:relative; z-index:1; flex:1; display:flex; flex-direction:column;">
                     <p style="text-transform:uppercase; letter-spacing:4px; font-size:12px; color:rgba(255,255,255,0.4); margin-bottom:20px; text-align:center">Kepler Personality Map</p>
                     
                     <div style="display:flex; align-items:center; justify-content:center; flex-direction:column; gap:15px; margin-bottom:30px; text-align:center;">
-                         \${imgSrc ? \`<img src="\${imgSrc}" style="width:140px; height:140px; border-radius:50%; object-fit:cover; box-shadow:0 15px 35px rgba(0,0,0,0.6); border:2px solid rgba(255,255,255,0.1)">\` : ''}
+                         ${imgSrc ? `<img src="${imgSrc}" style="width:140px; height:140px; border-radius:50%; object-fit:cover; box-shadow:0 15px 35px rgba(0,0,0,0.6); border:2px solid rgba(255,255,255,0.1)">` : ''}
                          <div>
-                            <h2 style="font-size:32px; margin:0; font-weight:800; letter-spacing:2px">\${song}</h2>
-                            <p style="font-size:14px; color:var(--accent-color); margin:8px 0; letter-spacing:1px">\${rarityText}</p>
+                            <h2 style="font-size:32px; margin:0; font-weight:800; letter-spacing:2px">${song}</h2>
+                            <p style="font-size:14px; color:var(--accent-color); margin:8px 0; letter-spacing:1px">${rarityText}</p>
                          </div>
                     </div>
 
                     <div style="margin-bottom:25px; background:rgba(255,255,255,0.03); padding:20px; border-radius:20px; line-height:1.8; font-size:14px; color:#d1d1da">
                         <div style="color:var(--accent-color); font-weight:800; margin-bottom:10px; font-size:13px; letter-spacing:1px">探测报告 // REPORT</div>
-                        \${soulReading}
+                        ${soulReading}
                         <div style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.05); padding-top:15px; opacity:0.8">
-                            \${(songDb.description || "").replace(/\\n/g, '<br>')}
+                            ${(songDb.description || "").replace(/\n/g, '<br>')}
                         </div>
                     </div>
 
                     <div style="flex:1; display:flex; justify-content:center; align-items:center; margin-bottom:25px;">
                         <svg viewBox="0 0 300 300" style="width:260px; height:260px" xmlns="http://www.w3.org/2000/svg">
-                            \${[0.2, 0.4, 0.6, 0.8, 1.0].map(r => \`
-                                <polygon points="\${[0, 60, 120, 180, 240, 300].map(a => {
+                            ${[0.2, 0.4, 0.6, 0.8, 1.0].map(r => `
+                                <polygon points="${[0, 60, 120, 180, 240, 300].map(a => {
                                     const rad = (a - 90) * Math.PI / 180;
-                                    return \`\${150 + 100 * r * Math.cos(rad)},\${150 + 100 * r * Math.sin(rad)}\`;
+                                    return `${150 + 100 * r * Math.cos(rad)},${150 + 100 * r * Math.sin(rad)}`;
                                 }).join(' ')}" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
-                            \`).join('')}
-                            <polygon points="\${Object.keys(DIMENSION_NAMES).map((dim, i) => {
+                            `).join('')}
+                            <polygon points="${Object.keys(DIMENSION_NAMES).map((dim, i) => {
                                 const rad = (i * 60 - 90) * Math.PI / 180;
                                 const r = dims[dim] / 100;
-                                return \`\${150 + 100 * r * Math.cos(rad)},\${150 + 100 * r * Math.sin(rad)}\`;
+                                return `${150 + 100 * r * Math.cos(rad)},${150 + 100 * r * Math.sin(rad)}`;
                             }).join(' ')}" fill="rgba(138, 43, 226, 0.35)" stroke="rgb(176, 136, 255)" stroke-width="3" />
                         </svg>
                     </div>
 
                     <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:25px">
-                        \${Object.entries(dims).map(([dim, val]) => \`
+                        ${Object.entries(dims).map(([dim, val]) => `
                             <div style="text-align:center; background:rgba(255,255,255,0.02); padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.05)">
-                                <p style="font-size:11px; opacity:0.5; margin-bottom:4px">\${DIMENSION_NAMES[dim]}</p>
-                                <p style="font-size:16px; font-weight:800; color:#b088ff">\${val}%</p>
+                                <p style="font-size:11px; opacity:0.5; margin-bottom:4px">${DIMENSION_NAMES[dim]}</p>
+                                <p style="font-size:16px; font-weight:800; color:#b088ff">${val}%</p>
                             </div>
-                        \`).join('')}
+                        `).join('')}
                     </div>
 
                     <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.1); padding-top:20px; margin-top:auto;">
@@ -726,7 +726,8 @@ function renderResult() {
                     </div>
                 </div>
             </div>
-        \`;
+        `;
+
 
         // Move generated QR to placeholder
         const placeholder = document.getElementById('final-qr-placeholder');
