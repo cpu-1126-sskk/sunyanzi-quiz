@@ -46,6 +46,7 @@ body {
         radial-gradient(ellipse at center, rgba(138, 43, 226, 0.06) 0%, transparent 70%);
     z-index: -10;
     filter: blur(40px); /* Reduced from 80px */
+    will-change: transform, opacity;
     transform: translateZ(0); /* Force GPU */
     transition: --nebula-color-1 8s ease-in-out, 
                 --nebula-color-2 8s ease-in-out;
@@ -143,8 +144,8 @@ body {
 }
 
 @keyframes starMove {
-    from { transform: translate3d(0, 0, 0); }
-    to { transform: translate3d(-100px, -100px, 0); }
+    from { background-position: 0 0; }
+    to { background-position: -100px -100px; }
 }
 
 /* Shooting Stars - Varied Sizes & Speeds */
@@ -611,8 +612,7 @@ h1 {
 .sort-item {
     display: flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(8px);
+    background: rgba(20, 20, 30, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     padding: 16px 20px;
@@ -745,6 +745,7 @@ h1 {
     transform: translate(-50%, -50%);
     z-index: -1;
     filter: blur(40px);
+    will-change: transform, opacity;
     animation: glowPulse 8s infinite alternate;
 }
 
