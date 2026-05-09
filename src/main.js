@@ -150,24 +150,36 @@ window.addEventListener('beforeunload', (e) => {
 
 async function init() {
     let ticking = false;
-    let targetX = 0;
-    let targetY = 0;
+    let targetX = 0, targetY = 0;
+    let currentX = 0, currentY = 0;
     let starField = null;
     let kepler = null;
+
+    const lerp = (start, end, amt) => (1 - amt) * start + amt * end;
 
     const applyParallax = () => {
         if (!starField) starField = document.querySelector('.star-field');
         if (!kepler) kepler = document.querySelector('.kepler-system');
-        if (starField) starField.style.transform = `translate3d(${targetX * 50}px, ${targetY * 50}px, 0)`;
-        if (kepler) kepler.style.transform = `translate3d(calc(-50% + ${targetX * -80}px), calc(-50% + ${targetY * -80}px), 0) rotateX(68deg) rotateY(${-5 + targetX * 10}deg)`;
-        ticking = false;
+        
+        // Use smoothing (LERP) for fluid motion on mobile
+        currentX = lerp(currentX, targetX, 0.1);
+        currentY = lerp(currentY, targetY, 0.1);
+
+        // Only update if difference is perceptible to save CPU
+        if (Math.abs(currentX - targetX) > 0.001 || Math.abs(currentY - targetY) > 0.001) {
+            if (starField) starField.style.transform = `translate3d(${currentX * 40}px, ${currentY * 40}px, 0)`;
+            if (kepler) kepler.style.transform = `translate3d(calc(-50% + ${currentX * -60}px), calc(-50% + ${currentY * -60}px), 0.1px) rotateX(68deg) rotateY(${-5 + currentX * 10}deg)`;
+            requestAnimationFrame(applyParallax);
+        } else {
+            ticking = false;
+        }
     };
 
     const updateParallax = (x, y) => {
         targetX = x; targetY = y;
         if (!ticking) {
-            requestAnimationFrame(applyParallax);
             ticking = true;
+            requestAnimationFrame(applyParallax);
         }
     };
 
@@ -178,8 +190,9 @@ async function init() {
     if (window.DeviceOrientationEvent) {
         window.addEventListener('deviceorientation', (e) => {
             if (e.beta === null || e.gamma === null) return;
-            const x = Math.max(-1, Math.min(1, e.gamma / 30)); 
-            const y = Math.max(-1, Math.min(1, (e.beta - 45) / 30));
+            // Normalize and limit range for smoother mobile experience
+            const x = Math.max(-1, Math.min(1, e.gamma / 35)); 
+            const y = Math.max(-1, Math.min(1, (e.beta - 45) / 35));
             updateParallax(x, y);
         });
     }
